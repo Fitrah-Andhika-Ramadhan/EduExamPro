@@ -1,390 +1,292 @@
+import Link from 'next/link'
+import Image from 'next/image'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import {
-  BookOpen, Timer, Target, BarChart3,
-  CheckCircle2, ArrowRight, Zap, Shield,
-  School, GraduationCap, Building2, Users,
-  PlayCircle, Award, TrendingUp
-} from 'lucide-react'
-import PricingButton from '@/components/pricing-button'
 
-export default async function Home() {
+export default async function LandingPage() {
   const session = await auth()
-  // Jika sudah login, langsung redirect ke dashboard
-  if (session?.user?.id) {
+  
+  if (session) {
+    if (session.user.role === 'admin') redirect('/admin/dashboard')
+    if (session.user.role === 'instructor') redirect('/instructor/dashboard')
     redirect('/dashboard')
   }
 
   return (
-    <div className="min-h-screen bg-canvas text-ink font-sans">
-      {/* Navigation */}
-      <header className="sticky top-0 z-50 w-full bg-canvas border-b border-hairline transition-all">
-        <div className="container max-w-7xl mx-auto flex h-[72px] items-center justify-between px-6">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 font-bold text-aubergine">
-              <BookOpen className="w-7 h-7" />
-              <span className="heading-md">EduBangsa</span>
-            </Link>
-            <nav className="hidden md:flex gap-6">
-              {[['#program', 'Program'], ['#fitur', 'Fitur'], ['#solusi', 'Solusi'], ['#harga', 'Harga']].map(([href, label]) => (
-                <Link key={href} href={href} className="body-md font-medium text-ink hover:text-link-blue transition-colors">
-                  {label}
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+      ` }} />
+      <div className="bg-background text-on-background font-body-md selection:bg-secondary-container min-h-screen flex flex-col">
+        {/* Top Navigation Bar */}
+        <nav className="bg-surface docked full-width top-0 shadow-sm sticky z-50 transition-all duration-200 ease-in-out border-b border-outline-variant">
+          <div className="flex justify-between items-center w-full px-margin-desktop max-w-container-max mx-auto h-16">
+            <div className="flex items-center gap-8">
+              <span className="text-headline-md font-headline-md font-bold text-primary">EduExam Pro</span>
+              <div className="hidden md:flex items-center gap-6">
+                <Link className="text-secondary font-bold border-b-2 border-secondary font-body-md text-body-md hover:text-secondary transition-colors" href="/">Beranda</Link>
+                <Link className="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors" href="#">Kursus</Link>
+                <Link className="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors" href="#">Tryout</Link>
+                <Link className="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors" href="#">Tentang Kami</Link>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link href="/sign-in" className="hidden md:block px-6 py-2 text-primary font-semibold hover:text-secondary transition-colors font-body-md text-body-md">Masuk</Link>
+              <Link href="/sign-up" className="bg-secondary-container text-on-secondary-container px-6 py-2 rounded-lg font-bold hover:bg-secondary hover:text-on-secondary transition-all active:scale-95 font-body-md text-body-md shadow-sm">Daftar Sekarang</Link>
+            </div>
+          </div>
+        </nav>
+
+        <main className="flex-grow">
+          {/* Hero Section */}
+          <section className="relative overflow-hidden bg-primary py-24 md:py-32">
+            <div className="relative z-10 max-w-container-max mx-auto px-margin-desktop flex flex-col items-center text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-primary-container text-on-primary-container mb-6 border border-on-primary-container/20">
+                <span className="material-symbols-outlined text-sm">stars</span>
+                <span className="font-label-md text-label-md uppercase tracking-wider">Platform Edukasi Terpercaya</span>
+              </div>
+              <h1 className="font-display-lg text-display-lg text-white mb-6 max-w-4xl leading-tight">
+                Ekosistem Digital Pembelajaran & <span className="text-secondary-container">Ujian Terpadu</span> #1 di Indonesia
+              </h1>
+              <p className="text-on-primary-container font-body-lg text-body-lg max-w-2xl mb-10 opacity-90">
+                Satu platform untuk semua kebutuhan akademik dan karir Anda. Dari persiapan ujian hingga manajemen pembelajaran institusi dengan teknologi AI terkini.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/sign-up" className="bg-secondary-container text-on-secondary-container px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-primary transition-all shadow-xl flex items-center justify-center gap-2">
+                  Mulai Belajar Gratis
+                  <span className="material-symbols-outlined">arrow_forward</span>
                 </Link>
-              ))}
-            </nav>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/sign-in" className="hidden sm:inline-flex button-secondary-pill">
-              Masuk
-            </Link>
-            <Link href="/sign-up" className="button-primary-pill">
-              Mulai Gratis
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main>
-        {/* ======= HERO ======= */}
-        <section className="relative overflow-hidden pastel-mesh-gradient pt-24 pb-32">
-          <div className="container max-w-[1240px] mx-auto px-6 relative z-10 text-center">
-            <h1 className="display-xxl text-ink mb-6 max-w-[896px] mx-auto animate-fade-in">
-              Lolos ujian CPNS dan UTBK dengan simulasi yang presisi
-            </h1>
-            <p className="body-lg text-ink-mute max-w-[672px] mx-auto mb-10 animate-fade-in" style={{ animationDelay: '100ms' }}>
-              EduBangsa menyatukan ribuan bank soal terstandar, timer ujian real-time, dan analitik mendalam dalam satu platform simulasi. Dirancang semirip mungkin dengan ujian sesungguhnya.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20 animate-fade-in" style={{ animationDelay: '200ms' }}>
-              <Link href="/sign-up" className="button-primary-pill">
-                Coba Gratis Sekarang
-              </Link>
-              <Link href="/sign-in" className="button-secondary-pill">
-                Masuk ke akun
-              </Link>
-            </div>
-
-            {/* Floating Product UI Mockup */}
-            <div className="max-w-[1024px] mx-auto rounded-lg bg-canvas elev-2 border border-hairline overflow-hidden animate-fade-in" style={{ animationDelay: '300ms' }}>
-              <div className="bg-canvas-cream border-b border-hairline px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
-                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
-                    <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
-                  </div>
-                  <div className="heading-sm ml-4 text-ink">Grand Tryout CPNS 2026</div>
-                </div>
-                <div className="flex items-center gap-2 text-semantic-error font-mono font-bold text-sm bg-semantic-error/10 px-3 py-1.5 rounded-sm">
-                  <Timer className="w-4 h-4" /> 45:32
-                </div>
+                <button className="bg-primary border border-on-primary-container text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-container transition-all">
+                  Konsultasi Institusi
+                </button>
               </div>
-              <div className="p-10 text-left grid lg:grid-cols-3 gap-10">
-                <div className="lg:col-span-2">
-                  <div className="micro-cap text-ink-mute mb-3">Soal 12 · TIU – Penalaran Numerik</div>
-                  <p className="heading-md text-ink mb-8">
-                    Jika 3x + 7 = 22, maka nilai x adalah...
-                  </p>
-                  <div className="space-y-3">
-                    {[{ t: '3', s: false }, { t: '4', s: false }, { t: '5', s: true }, { t: '6', s: false }].map((opt, i) => (
-                      <div key={i} className={`flex items-center gap-4 p-4 rounded-md border transition-all ${opt.s ? 'bg-canvas-lavender border-primary text-primary body-strong elev-4' : 'border-hairline text-ink body-md'}`}>
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border ${opt.s ? 'bg-primary border-primary text-canvas' : 'border-hairline text-ink-mute'}`}>
-                          {String.fromCharCode(65 + i)}
-                        </div>
-                        {opt.t}
-                      </div>
-                    ))}
-                  </div>
+
+              {/* Stats Preview */}
+              <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-5xl">
+                <div className="text-center">
+                  <div className="text-white font-headline-lg text-headline-lg mb-1">5jt+</div>
+                  <div className="text-on-primary-container font-label-md text-label-md uppercase">Peserta Terdaftar</div>
                 </div>
-                <div className="hidden lg:block border-l border-hairline pl-10">
-                  <h3 className="heading-sm mb-4">Navigasi Soal</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {Array.from({ length: 20 }, (_, i) => (
-                      <div key={i} className={`w-10 h-10 rounded-sm text-sm font-bold flex items-center justify-center border ${i === 11 ? 'bg-primary text-canvas border-primary' : i < 11 ? 'bg-semantic-success/10 border-semantic-success/30 text-semantic-success' : 'border-hairline text-ink-mute'}`}>
-                        {i + 1}
-                      </div>
-                    ))}
-                  </div>
+                <div className="text-center">
+                  <div className="text-white font-headline-lg text-headline-lg mb-1">500+</div>
+                  <div className="text-on-primary-container font-label-md text-label-md uppercase">Mitra Institusi</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-white font-headline-lg text-headline-lg mb-1">98%</div>
+                  <div className="text-on-primary-container font-label-md text-label-md uppercase">Tingkat Kepuasan</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-white font-headline-lg text-headline-lg mb-1">10k+</div>
+                  <div className="text-on-primary-container font-label-md text-label-md uppercase">Bank Soal Terverifikasi</div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* ======= STATS ======= */}
-        <section className="py-16 bg-canvas border-b border-hairline">
-          <div className="container max-w-[1280px] mx-auto px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {[
-                { num: '50K+', label: 'Bank Soal Tervalidasi' },
-                { num: '6+', label: 'Jenis Program Ujian' },
-                { num: '99%', label: 'Uptime Platform' },
-                { num: '15K+', label: 'Pengguna Aktif' },
-              ].map((s, i) => (
-                <div key={i} className="text-center">
-                  <div className="display-lg text-primary mb-2">{s.num}</div>
-                  <div className="body-md text-ink-mute">{s.label}</div>
-                </div>
-              ))}
+          {/* Bento Grid Features Section */}
+          <section className="py-24 px-margin-desktop max-w-container-max mx-auto">
+            <div className="flex flex-col items-center mb-16 text-center">
+              <h2 className="font-headline-lg text-headline-lg text-primary mb-4">Fitur Unggulan Masa Depan</h2>
+              <p className="text-on-surface-variant font-body-md text-body-md max-w-xl">Dirancang untuk memaksimalkan potensi belajar melalui pendekatan teknologi yang humanis.</p>
             </div>
-          </div>
-        </section>
 
-        {/* ======= PROGRAM ======= */}
-        <section id="program" className="py-24 bg-canvas-cream">
-          <div className="container max-w-[1280px] mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2 className="display-xl text-ink mb-4">Pilih program unggulan Anda</h2>
-              <p className="body-lg text-ink-mute max-w-[672px] mx-auto">Kami menyediakan modul yang dirancang secara cermat untuk berbagai jenis seleksi nasional.</p>
-            </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                {
-                  badge: 'Paling Diminati',
-                  icon: '🏛️', title: 'Tryout CPNS / PPPK',
-                  desc: 'Modul SKD Lengkap: TIU, TWK, TKP yang telah disesuaikan dengan standar BKN terbaru.',
-                  features: ['TIU: Numerik & Verbal', 'TWK: Pancasila & UUD', 'TKP: Situasional', 'Passing grade resmi'],
-                },
-                {
-                  badge: 'SNBT 2026',
-                  icon: '🎓', title: 'Tryout UTBK / SNBT',
-                  desc: 'Materi TPS dan TKA untuk Saintek serta Soshum sesuai format SNBT tahun ini.',
-                  features: ['Penalaran Umum', 'Literasi Bahasa', 'TKA Saintek', 'TKA Soshum'],
-                },
-                {
-                  badge: 'Eksklusif',
-                  icon: '🏢', title: 'Seleksi Kedinasan',
-                  desc: 'Psikotes, TPA, dan simulasi teknis untuk persiapan jalur sekolah kedinasan.',
-                  features: ['Psikotes Wartegg', 'Tes Potensi Akademik', 'Tes Bahasa Inggris', 'Simulasi Wawancara'],
-                },
-              ].map((prog, i) => (
-                <div key={i} className="bg-canvas rounded-xl border border-hairline p-8 flex flex-col hover:elev-1 transition-shadow">
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-5xl">{prog.icon}</span>
-                    <span className="pill-cap-shade">{prog.badge}</span>
+            <div className="bento-grid">
+              {/* Main Feature: Tryout */}
+              <div className="col-span-12 md:col-span-8 group relative overflow-hidden rounded-xl bg-white shadow-sm border border-outline-variant p-8 transition-all hover:shadow-lg">
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-lg bg-secondary-container/20 text-secondary flex items-center justify-center mb-6">
+                    <span className="material-symbols-outlined">assignment</span>
                   </div>
-                  <h3 className="heading-lg mb-3">{prog.title}</h3>
-                  <p className="body-md text-ink-mute mb-6 flex-1">{prog.desc}</p>
+                  <h3 className="font-headline-md text-headline-md text-primary mb-3">Tryout CPNS & UTBK Akurat</h3>
+                  <p className="text-on-surface-variant font-body-md text-body-md max-w-md mb-6">Simulasi ujian dengan sistem CAT (Computer Assisted Test) yang identik dengan aslinya, lengkap dengan analisis IRT dan perangkingan nasional.</p>
                   <ul className="space-y-3 mb-8">
-                    {prog.features.map((f, j) => (
-                      <li key={j} className="flex items-center gap-3 body-md">
-                        <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />{f}
-                      </li>
-                    ))}
+                    <li className="flex items-center gap-2 text-on-surface">
+                      <span className="material-symbols-outlined text-success-green text-sm">check_circle</span>
+                      <span className="font-body-sm text-body-sm">Pembahasan Video & Teks Lengkap</span>
+                    </li>
+                    <li className="flex items-center gap-2 text-on-surface">
+                      <span className="material-symbols-outlined text-success-green text-sm">check_circle</span>
+                      <span className="font-body-sm text-body-sm">Statistik Kecepatan Menjawab</span>
+                    </li>
                   </ul>
-                  <Link href="/sign-up" className="button-outline-aubergine w-full">
-                    Mulai Latihan
-                  </Link>
+                  <button className="text-secondary font-bold flex items-center gap-2 group-hover:translate-x-2 transition-transform">
+                    Jelajahi Paket Tryout <span className="material-symbols-outlined">arrow_right_alt</span>
+                  </button>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ======= FITUR CBT ======= */}
-        <section id="fitur" className="py-24 bg-canvas">
-          <div className="container max-w-[1280px] mx-auto px-6">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div>
-                <h2 className="display-xl mb-6">
-                  Simulasi persis sistem BKN & SNBT
-                </h2>
-                <p className="body-lg text-ink-mute mb-10">
-                  Antarmuka CBT kami merestorasi pengalaman ujian nyata secara mendetail, sehingga Anda tidak akan kaget pada hari pelaksanaan ujian yang sesungguhnya.
-                </p>
-                <div className="space-y-8">
-                  {[
-                    { icon: Timer, title: 'Timer Hitung Mundur', desc: 'Waktu berjalan layaknya ujian asli, lengkap dengan peringatan ketika waktu kritis.' },
-                    { icon: Target, title: 'Navigasi Interaktif', desc: 'Melompat antar soal, menandai soal yang meragukan, dan melihat rangkuman di sidebar.' },
-                    { icon: BarChart3, title: 'Analitik Mendalam', desc: 'Evaluasi instan yang memberikan insight mengenai kelemahan dan kekuatan Anda per kategori.' },
-                  ].map((feat, i) => (
-                    <div key={i} className="flex gap-5">
-                      <div className="w-12 h-12 rounded-md bg-canvas-lavender flex items-center justify-center shrink-0">
-                        <feat.icon className="w-6 h-6 text-primary" />
-                      </div>
-                      <div>
-                        <h4 className="heading-sm mb-1">{feat.title}</h4>
-                        <p className="body-md text-ink-mute">{feat.desc}</p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="absolute right-0 bottom-0 w-1/2 opacity-20 md:opacity-100 group-hover:scale-105 transition-transform duration-500">
+                  <img alt="Student Studying" className="w-full h-full object-cover rounded-tl-3xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRh3OTV1mi5Kl752mlmcjjhQZamogQfk3F_T7rN3aDCKW1KinC8a2bzvrgaoB4KVcV_GRrPx4F_3TMMWj9sOJZZVPpyhJjLOAK3t9HVHejcmw7apVInleV9W4Edr0ZPxEzVBKMqMqzPVfn3mmf2Fc1Nq8VJY4ydbMIWc7HmVZB1_bQPxJiaGCH2ABtHBalruvMiJ6Psd_9ctYmRR0zkfEbQiRbJPExWcyQi1yqyRy9JODMMy9XdP0ZAkJbKnfnDAgE4fRBArecYlFz"/>
                 </div>
               </div>
 
-              <div className="relative">
-                <div className="pastel-mesh-gradient-darker absolute inset-0 rounded-[40px] transform rotate-3" />
-                <div className="relative bg-canvas rounded-xl border border-hairline elev-2 overflow-hidden transform -rotate-1">
-                  <div className="bg-canvas border-b border-hairline px-6 py-4 flex items-center justify-between">
-                    <div className="flex gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-hairline"></div>
-                      <div className="w-3 h-3 rounded-full bg-hairline"></div>
-                      <div className="w-3 h-3 rounded-full bg-hairline"></div>
-                    </div>
-                    <div className="body-strong text-ink">Analitik Rapor Anda</div>
+              {/* AI Adaptive Learning */}
+              <div className="col-span-12 md:col-span-4 bg-primary text-white rounded-xl p-8 flex flex-col justify-between shadow-sm transition-all hover:shadow-lg">
+                <div>
+                  <div className="w-12 h-12 rounded-lg bg-on-primary-container text-white flex items-center justify-center mb-6">
+                    <span className="material-symbols-outlined">psychology</span>
                   </div>
-                  <div className="p-8">
-                    <div className="flex items-center gap-6 mb-8">
-                      <div className="w-24 h-24 rounded-full border-[6px] border-semantic-success flex items-center justify-center">
-                        <span className="heading-lg text-semantic-success">85%</span>
-                      </div>
-                      <div>
-                        <h3 className="heading-md mb-1">Status: Lulus Passing Grade</h3>
-                        <p className="body-md text-ink-mute">Skor Anda berada di atas rata-rata peserta lain.</p>
-                      </div>
+                  <h3 className="font-headline-sm text-headline-sm mb-3">AI Adaptive Learning</h3>
+                  <p className="text-on-primary-container font-body-sm text-body-sm mb-6">Kurikulum yang menyesuaikan dengan tingkat pemahaman Anda secara real-time untuk efisiensi belajar maksimal.</p>
+                </div>
+                <div className="p-4 bg-white/10 rounded-lg border border-white/10">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-label-md text-label-md">Learning Progress</span>
+                    <span className="font-label-md text-label-md">75%</span>
+                  </div>
+                  <div className="w-full bg-white/20 h-2 rounded-full overflow-hidden">
+                    <div className="bg-secondary-container h-full w-3/4"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* LMS Terintegrasi */}
+              <div className="col-span-12 md:col-span-4 group bg-surface-container-low rounded-xl p-8 border border-outline-variant shadow-sm transition-all hover:shadow-lg">
+                <div className="w-12 h-12 rounded-lg bg-white text-secondary flex items-center justify-center mb-6 shadow-sm">
+                  <span className="material-symbols-outlined">hub</span>
+                </div>
+                <h3 className="font-headline-sm text-headline-sm text-primary mb-3">LMS Terintegrasi</h3>
+                <p className="text-on-surface-variant font-body-sm text-body-sm mb-6">Kelola kelas, materi, dan tugas dalam satu dashboard yang intuitif untuk sekolah maupun bimbingan belajar.</p>
+                <img alt="Dashboard Interface" className="rounded-lg shadow-sm border border-outline-variant opacity-80 group-hover:opacity-100 transition-opacity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDs1AK1tlQWQrR8y2ZBQGRiBA8ozGGpfjD9GWxcdRJU7Yx9AFtESDI_cGoSEJOFt-o8rFDWlE6XSH-y1UCDXycYhSHXK-IcCrj9IEYoGD9TYMOi19LHYiP5f_vjW84FNocuZseljzFAOkFsZKWpNeaFY9K7NO11r9Jgkz9VodLioM6VI4QBKzIAM05YO8rSf7nTIFQQx--dnRFeb8wtRmma1tRmm9nqwDVGNMUubRG7eseRc5Pt-XoA3PMAYdJULhJruzf2x9YFn827"/>
+              </div>
+
+              {/* Content Library */}
+              <div className="col-span-12 md:col-span-8 bg-surface-container-highest rounded-xl p-8 border border-outline-variant flex flex-col md:flex-row gap-8 shadow-sm transition-all hover:shadow-lg">
+                <div className="flex-1">
+                  <h3 className="font-headline-sm text-headline-sm text-primary mb-3">Perpustakaan Digital Premium</h3>
+                  <p className="text-on-surface-variant font-body-sm text-body-sm mb-6">Ribuan video materi pembelajaran dan e-book dari pengajar ahli di bidangnya yang dapat diakses kapan saja.</p>
+                  <div className="flex gap-4">
+                    <div className="px-4 py-2 bg-white rounded shadow-sm border border-outline-variant flex items-center gap-2">
+                      <span className="material-symbols-outlined text-secondary">movie</span>
+                      <span className="font-label-md text-label-md text-primary">Video Materi</span>
                     </div>
-                    <div className="space-y-4">
-                      {['Penalaran Umum', 'Literasi Bahasa', 'Pengetahuan Kuantitatif'].map((cat, idx) => (
-                        <div key={idx}>
-                          <div className="flex justify-between body-md mb-1">
-                            <span>{cat}</span>
-                            <span className="body-strong">{80 + idx * 5}%</span>
-                          </div>
-                          <div className="h-2 bg-canvas-cream rounded-full overflow-hidden">
-                            <div className="h-full bg-primary" style={{ width: `${80 + idx * 5}%` }} />
-                          </div>
-                        </div>
-                      ))}
+                    <div className="px-4 py-2 bg-white rounded shadow-sm border border-outline-variant flex items-center gap-2">
+                      <span className="material-symbols-outlined text-secondary">book</span>
+                      <span className="font-label-md text-label-md text-primary">E-Book</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden shadow-md">
+                    <img alt="Group Discussion" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5sXFhCAIEhGf9Bq_S0LubKhGOEKLK68xgrTkbBY242sYkePwRnyKURbmQJG-iu2QN29wz2J7DOF6ixMFXXwsObTTLGUX8t4jqPjsieZqUmy-PDGBlb-FwDBqtOPkaD3Dy_ggSmdPfkMlOprXo4npnlC0Qy7KklOZCmMQMQQWYjVAD8X1Z40OVCtLYiEmefs5iu7qEVkflxgK9IZkpE7_h6fAXhP95e71XPtf-r_9KOywCqgoiCjbYq8YwGi4rKAbUO4nlIdEvGvzD"/>
+                    <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                        <span className="material-symbols-outlined text-primary text-4xl">play_arrow</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* ======= HARGA ======= */}
-        <section id="harga" className="py-24 bg-canvas-lavender">
-          <div className="container max-w-[1280px] mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2 className="display-xl mb-4">Sederhana dan Terjangkau</h2>
-              <p className="body-lg text-ink-mute">Tidak ada biaya tersembunyi. Mulai berlatih secara gratis hari ini.</p>
-            </div>
-            
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                {
-                  name: 'Gratis', price: 'Rp 0', period: 'selamanya',
-                  desc: 'Sempurna untuk mengevaluasi kemampuan awal.',
-                  features: ['5 Paket Ujian Lengkap', 'Hasil & Skor Instan', 'Pembahasan Terbatas'],
-                  btnType: 'button-outline-aubergine', featured: false
-                },
-                {
-                  name: 'Pro', price: 'Rp 99.000', period: 'per bulan',
-                  desc: 'Bagi mereka yang serius mengejar target.',
-                  features: ['Akses Semua Ujian', 'Pembahasan Sangat Detail', 'Analitik Performa', 'Prediksi Kelulusan', 'Prioritas Dukungan'],
-                  btnType: 'button-primary-pill', featured: true
-                },
-                {
-                  name: 'Institusi', price: 'Hubungi Kami', period: 'kustom',
-                  desc: 'Khusus untuk Bimbel, Sekolah, dan Universitas.',
-                  features: ['Semua Fitur Pro', 'Sistem Multi-User', 'Admin Dashboard Lengkap', 'Whitelabel Domain'],
-                  btnType: 'button-outline-aubergine', featured: false
-                }
-              ].map((plan, i) => (
-                <div key={i} className={plan.featured ? 'card-pricing-featured elev-2 scale-105 transform z-10' : 'card-pricing mt-6 mb-6'}>
-                  <h3 className="heading-lg mb-2">{plan.name}</h3>
-                  <p className={`body-md mb-6 ${plan.featured ? 'text-on-aubergine-mute' : 'text-ink-mute'}`}>{plan.desc}</p>
-                  <div className="mb-8">
-                    <span className="display-md">{plan.price}</span>
-                    <span className={`body-md ml-2 ${plan.featured ? 'text-on-aubergine-mute' : 'text-ink-mute'}`}>/ {plan.period}</span>
+          {/* Testimonial Section */}
+          <section className="bg-surface-container-low py-24">
+            <div className="max-w-container-max mx-auto px-margin-desktop">
+              <div className="flex flex-col items-center mb-16 text-center">
+                <span className="text-secondary font-bold tracking-widest text-xs uppercase mb-2">Suara Mereka</span>
+                <h2 className="font-headline-lg text-headline-lg text-primary">Kisah Sukses Bersama Kami</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Testimonial 1 */}
+                <div className="glass-card p-8 rounded-xl flex flex-col">
+                  <div className="flex text-warning-orange mb-4">
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
                   </div>
-                  <ul className="space-y-4 mb-10">
-                    {plan.features.map((f, j) => (
-                      <li key={j} className="flex items-center gap-3 body-md">
-                        <CheckCircle2 className={`w-5 h-5 shrink-0 ${plan.featured ? 'text-on-primary' : 'text-primary'}`} />{f}
-                      </li>
-                    ))}
-                  </ul>
-                  <PricingButton 
-                    planName={plan.name} 
-                    btnType={plan.btnType} 
-                    price={plan.name === 'Pro' ? 99000 : 0} 
-                  />
+                  <p className="italic text-on-surface-variant font-body-md text-body-md mb-8 flex-grow">"EduExam Pro sangat membantu saya dalam persiapan CPNS. Fitur simulasi CAT-nya benar-benar mirip dengan aslinya, membuat saya tidak grogi saat ujian yang sebenarnya."</p>
+                  <div className="flex items-center gap-4">
+                    <img alt="Avatar" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8b81Br8sWn52VjfKYZ-7v21kbT-r8BsSLUGyIZHvaVp2ipQpCQ7HUzFL9Ihh4pQoVLPE8s-T1lrFvYTWM8DaY52XIsAlh9cc9y7IEmMnN03Hd95OEcjTPJboYOzmf5zCPuCyj2ooFXjwt3aytpMn2nzD_RSFtpltOJQYJCFyym4HqYwUvYDavsz97Fm_hZZ35p9AvbDd0NdudtV8BW_tqjhQYnqc-Qf7uH0a6gNAHvHb_PLH5D8z0HhxRNsVQY3UAFAtkxfdI7m4g"/>
+                    <div>
+                      <div className="font-bold text-primary text-body-md">Andri Wijaya</div>
+                      <div className="text-on-surface-variant text-label-md uppercase">Lulus CPNS 2023</div>
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        {/* ======= CLOSING CTA ======= */}
-        <section className="py-24 bg-canvas">
-          <div className="container max-w-[1024px] mx-auto px-6">
-            <div className="card-aubergine-band text-center relative overflow-hidden">
-              <div className="absolute top-0 right-0 opacity-10">
-                <svg width="400" height="400" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                  <path fill="#ffffff" d="M45,-78C58.3,-68.8,69,-55.4,78.1,-41.2C87.3,-27,94.9,-12,94.3,2.7C93.7,17.4,85,31.8,75,44.7C65.1,57.5,53.9,68.9,40.4,76.5C27,84,11.3,87.7,-4.3,89.5C-19.9,91.3,-35.3,91.2,-48.9,85C-62.4,78.7,-74.1,66.4,-82.1,52C-90.1,37.6,-94.5,21.1,-93.6,5.3C-92.7,-10.5,-86.6,-25.6,-78.1,-39.4C-69.5,-53.2,-58.5,-65.7,-44.8,-74.6C-31,-83.4,-14.5,-88.7,1.4,-90.7C17.3,-92.7,31.7,-87.3,45,-78Z" transform="translate(100 100)" />
-                </svg>
-              </div>
-              <h2 className="display-xl mb-6 relative z-10">Siap untuk meraih kelulusan Anda?</h2>
-              <p className="body-lg text-on-aubergine-mute mb-10 max-w-2xl mx-auto relative z-10">
-                Bergabung dengan lebih dari 15,000 peserta yang telah membuktikan efektivitas platform kami.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
-                <Link href="/sign-up" className="button-outline-on-aubergine bg-canvas text-primary hover:bg-canvas-cream border-0">
-                  Daftar Gratis
-                </Link>
-                <Link href="/contact-sales" className="button-outline-on-aubergine">
-                  Hubungi Penjualan
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
+                {/* Testimonial 2 */}
+                <div className="glass-card p-8 rounded-xl flex flex-col">
+                  <div className="flex text-warning-orange mb-4">
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                  </div>
+                  <p className="italic text-on-surface-variant font-body-md text-body-md mb-8 flex-grow">"Analisis IRT di platform ini memberikan gambaran akurat mengenai posisi saya dibanding peserta lain. Materi AI Adaptive Learning membantu saya fokus di bagian yang saya lemah."</p>
+                  <div className="flex items-center gap-4">
+                    <img alt="Avatar" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEwN8z63HONqhM61hcdc2m8nJGWDKBTWcNPW-aAEdNmP-fYMOeOUiV86RJ8TV9zhO8EKWw2dTTeAsw4u63zOZx1olTtigOdHY9hmjF0-nBWXpI3bS6oqSVZb1w304PzdTZvCA_viogB8FvAvNbnLpc1EZ8gDW81s1giUmgJldfq-DS5aHMZW5Xge2-fma8ucwuuKxwdUO9dhdu9P-usyGHcAMW5owxa9VUft6-malPsSclj-lRYe8cVQQJz5rGi3Jl59W9TL0aEJfO"/>
+                    <div>
+                      <div className="font-bold text-primary text-body-md">Siti Aminah</div>
+                      <div className="text-on-surface-variant text-label-md uppercase">Mahasiswa Kedokteran UI</div>
+                    </div>
+                  </div>
+                </div>
 
-      {/* Footer */}
-      <footer className="bg-surface-aubergine text-on-primary py-16">
-        <div className="container max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-5 gap-10 mb-16">
-            <div className="md:col-span-2">
-              <Link href="/" className="flex items-center gap-2 font-bold text-on-primary mb-6">
-                <BookOpen className="w-7 h-7" />
-                <span className="heading-md">EduBangsa</span>
-              </Link>
-              <p className="body-md text-on-aubergine-mute max-w-sm mb-6">
-                Sistem simulasi ujian terpadu yang membantu Anda mempersiapkan diri menghadapi masa depan yang lebih baik.
-              </p>
+                {/* Testimonial 3 */}
+                <div className="glass-card p-8 rounded-xl flex flex-col">
+                  <div className="flex text-warning-orange mb-4">
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                  </div>
+                  <p className="italic text-on-surface-variant font-body-md text-body-md mb-8 flex-grow">"Sistem LMS untuk sekolah kami sangat stabil dan mudah digunakan. Guru-guru merasa terbantu dengan otomatisasi penilaian dan bank soal yang melimpah."</p>
+                  <div className="flex items-center gap-4">
+                    <img alt="Avatar" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTOJdBne5L8ckVPyI-iGTW7q3J6inYFUHjW-mnQ1ZrApij4GReB9weJUWMLvCvJtxWPbR-fXLlveHZipzb5aMvhVk0P1VZl9Zb14yVJWSCDBIkBdQwuKfVGnsjuerpcqZqN23QXovlNu7x7nOG06xn6bXAdvJQmhl6ohg-uIJYak1vXNC5Hll3NhRA-Ce9y7sJ47E9ZT24WMB2pm2TEa4kw0Mwrb8la718taQY9PU6xPejKLow9gEvRrqSk9aJvPAwoPraPI254DpF"/>
+                    <div>
+                      <div className="font-bold text-primary text-body-md">Bpk. Darmanto</div>
+                      <div className="text-on-surface-variant text-label-md uppercase">Kepala Sekolah SMA 1</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <h4 className="micro-cap text-on-aubergine-mute mb-4">Produk</h4>
-              <ul className="space-y-3">
-                <li><Link href="#" className="link-on-aubergine">Tryout CPNS</Link></li>
-                <li><Link href="#" className="link-on-aubergine">Tryout UTBK</Link></li>
-                <li><Link href="#" className="link-on-aubergine">Kedinasan</Link></li>
-                <li><Link href="#" className="link-on-aubergine">Harga</Link></li>
-              </ul>
+          </section>
+
+          {/* CTA Section */}
+          <section className="py-24 px-margin-desktop max-w-container-max mx-auto">
+            <div className="bg-primary rounded-2xl p-12 text-center text-white relative overflow-hidden">
+              <div className="relative z-10">
+                <h2 className="font-display-lg text-display-lg mb-6">Siap Untuk Langkah Besar Anda?</h2>
+                <p className="text-on-primary-container font-body-lg text-body-lg max-w-2xl mx-auto mb-10">Bergabunglah dengan jutaan pembelajar lainnya dan raih impian Anda dengan dukungan ekosistem digital terbaik.</p>
+                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                  <Link href="/sign-up" className="bg-secondary-container text-on-secondary-container px-10 py-4 rounded-lg font-bold text-xl hover:bg-white hover:text-primary transition-all shadow-lg active:scale-95 flex items-center justify-center">Mulai Sekarang</Link>
+                  <button className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-lg font-bold text-xl hover:bg-white/10 transition-all">Lihat Katalog Kursus</button>
+                </div>
+              </div>
             </div>
-            <div>
-              <h4 className="micro-cap text-on-aubergine-mute mb-4">EduBangsa</h4>
-              <ul className="space-y-3">
-                <li><Link href="#" className="link-on-aubergine">Tentang Kami</Link></li>
-                <li><Link href="#" className="link-on-aubergine">Karir</Link></li>
-                <li><Link href="#" className="link-on-aubergine">Blog</Link></li>
-                <li><Link href="#" className="link-on-aubergine">Kontak</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="micro-cap text-on-aubergine-mute mb-4">Bantuan</h4>
-              <ul className="space-y-3">
-                <li><Link href="#" className="link-on-aubergine">Pusat Bantuan</Link></li>
-                <li><Link href="#" className="link-on-aubergine">FAQ</Link></li>
-                <li><Link href="#" className="link-on-aubergine">Status Sistem</Link></li>
-              </ul>
-            </div>
+          </section>
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-surface-container-highest w-full py-stack-lg px-margin-desktop flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto border-t border-outline-variant">
+          <div className="flex flex-col items-center md:items-start mb-8 md:mb-0">
+            <span className="text-headline-sm font-headline-sm font-bold text-primary mb-2">EduExam Pro</span>
+            <p className="text-on-surface-variant font-body-sm text-body-sm max-w-xs text-center md:text-left">Solusi terintegrasi untuk masa depan pendidikan Indonesia yang lebih cerdas dan inklusif.</p>
           </div>
-          <div className="border-t border-[#611f69] pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex gap-6">
-              <Link href="#" className="caption text-on-aubergine-mute hover:text-on-primary">Privasi</Link>
-              <Link href="#" className="caption text-on-aubergine-mute hover:text-on-primary">Ketentuan</Link>
-              <Link href="#" className="caption text-on-aubergine-mute hover:text-on-primary">Cookie</Link>
-            </div>
-            <p className="caption text-on-aubergine-mute">
-              &copy; {new Date().getFullYear()} Yayasan Edukasi Bangsa Unggul. Semua hak cipta dilindungi.
-            </p>
+          <div className="flex gap-8 mb-8 md:mb-0">
+            <Link className="text-on-surface-variant font-body-sm text-body-sm hover:text-secondary transition-colors" href="#">Kebijakan Privasi</Link>
+            <Link className="text-on-surface-variant font-body-sm text-body-sm hover:text-secondary transition-colors" href="#">Syarat & Ketentuan</Link>
+            <Link className="text-on-surface-variant font-body-sm text-body-sm hover:text-secondary transition-colors" href="#">Bantuan</Link>
+            <Link className="text-on-surface-variant font-body-sm text-body-sm hover:text-secondary transition-colors" href="#">Kontak Kami</Link>
           </div>
-        </div>
-      </footer>
-    </div>
+          <div className="text-on-surface-variant font-body-sm text-body-sm">
+            © 2024 EduExam Pro. Hak Cipta Dilindungi.
+          </div>
+        </footer>
+      </div>
+    </>
   )
 }

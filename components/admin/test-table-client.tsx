@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Edit, Trash2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { deleteTest, toggleTestPublish } from '@/app/actions/admin'
 
 type TestData = {
@@ -48,78 +47,115 @@ export default function TestTableClient({ initialTests }: { initialTests: TestDa
   }
 
   return (
-    <div className="bg-canvas rounded-xl border border-hairline overflow-hidden">
-      <div className="p-6 border-b border-hairline bg-canvas-cream/50">
-        <h2 className="heading-md text-ink">Daftar Paket Ujian ({tests.length})</h2>
+    <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden">
+      {/* Filter Bar */}
+      <div className="p-6 border-b border-outline-variant grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
+        <div className="lg:col-span-1 space-y-2">
+          <label className="font-label-md text-on-surface-variant">Cari Paket Ujian</label>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">search</span>
+            <input className="w-full pl-10 pr-4 py-2 bg-surface border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-sm" placeholder="Nama ujian..." type="text"/>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <label className="font-label-md text-on-surface-variant">Kategori</label>
+          <select className="w-full py-2 px-3 bg-surface border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-body-sm appearance-none cursor-pointer">
+            <option>Semua Kategori</option>
+            <option>CPNS</option>
+            <option>UTBK</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label className="font-label-md text-on-surface-variant">Status</label>
+          <select className="w-full py-2 px-3 bg-surface border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-body-sm appearance-none cursor-pointer">
+            <option>Semua Status</option>
+            <option>Terverifikasi (Aktif)</option>
+            <option>Draft</option>
+          </select>
+        </div>
+        <div className="flex justify-end lg:justify-start lg:ml-auto space-y-2 self-end">
+          <button className="bg-surface-container-low border border-outline-variant text-on-surface-variant hover:text-primary px-4 py-2 rounded-lg font-label-md font-semibold transition-colors flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">filter_list</span> Filter
+          </button>
+        </div>
       </div>
 
       {message && (
         <div className={`m-4 p-3 rounded-lg flex items-center gap-2 text-sm font-semibold ${
-          message.type === 'success' ? 'bg-semantic-success/10 text-semantic-success' : 'bg-semantic-error/10 text-semantic-error'
+          message.type === 'success' ? 'bg-green-50 text-success-green border border-success-green/20' : 'bg-error-container text-on-error-container border border-error/20'
         }`}>
-          {message.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+          <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+            {message.type === 'success' ? 'check_circle' : 'error'}
+          </span>
           {message.text}
         </div>
       )}
       
+      {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-hairline bg-canvas-cream">
-              <th className="p-4 body-strong text-ink">Nama Paket</th>
-              <th className="p-4 body-strong text-ink text-center">Jumlah Soal</th>
-              <th className="p-4 body-strong text-ink text-center">Durasi (Menit)</th>
-              <th className="p-4 body-strong text-ink text-center">Status</th>
-              <th className="p-4 body-strong text-ink text-right">Aksi</th>
+        <table className="w-full text-left">
+          <thead className="bg-surface-container-low text-label-md text-on-surface uppercase tracking-wider">
+            <tr>
+              <th className="px-6 py-4 font-semibold">Nama Paket</th>
+              <th className="px-6 py-4 font-semibold text-center">Jumlah Soal</th>
+              <th className="px-6 py-4 font-semibold text-center">Durasi (Menit)</th>
+              <th className="px-6 py-4 font-semibold text-center">Status</th>
+              <th className="px-6 py-4 font-semibold text-right">Aksi</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-outline-variant">
             {tests.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-ink-mute body-md">
+                <td colSpan={5} className="p-8 text-center text-on-surface-variant font-body-sm">
                   Belum ada paket ujian. Silakan unggah soal menggunakan form di atas.
                 </td>
               </tr>
             ) : (
               tests.map((t) => (
-                <tr key={t.id} className={`border-b border-hairline hover:bg-canvas-cream/30 transition-colors ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
-                  <td className="p-4">
-                    <div className="font-semibold text-ink">{t.title}</div>
-                    <div className="caption text-ink-mute">
+                <tr key={t.id} className={`hover:bg-surface-container transition-colors group ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <td className="px-6 py-4">
+                    <p className="font-label-md text-primary font-bold group-hover:text-secondary transition-colors">{t.title}</p>
+                    <p className="text-[11px] text-outline mt-1">
                       Dibuat: {t.createdAt ? new Date(t.createdAt).toLocaleDateString('id-ID') : '-'}
-                    </div>
+                    </p>
                   </td>
-                  <td className="p-4 text-center font-semibold text-primary">
-                    {t.questionCount} Soal
+                  <td className="px-6 py-4 text-center">
+                    <span className="px-2 py-1 bg-surface-container text-on-surface-variant text-[11px] font-bold rounded">
+                      {t.questionCount} Soal
+                    </span>
                   </td>
-                  <td className="p-4 text-center text-ink-mute">
-                    {t.durationMinutes}
+                  <td className="px-6 py-4 text-center">
+                    <span className="text-body-sm text-on-surface-variant font-medium">
+                      {t.durationMinutes}
+                    </span>
                   </td>
-                  <td className="p-4 text-center">
+                  <td className="px-6 py-4 text-center">
                     <button 
                       onClick={() => handleTogglePublish(t.id, t.isPublished || false)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition-opacity hover:opacity-80 ${
-                      t.isPublished 
-                        ? 'bg-semantic-success/20 text-semantic-success' 
-                        : 'bg-canvas-lavender text-ink-mute'
-                    }`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold uppercase transition-all hover:shadow-sm ${
+                        t.isPublished 
+                          ? 'bg-success-green/10 text-success-green border border-success-green/20' 
+                          : 'bg-surface-container-high text-outline border border-outline-variant'
+                      }`}
                       title="Klik untuk ubah status"
                     >
-                      {t.isPublished ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                      {t.isPublished ? 'Aktif' : 'Draft'}
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'currentColor' }}></span>
+                      {t.isPublished ? 'Terverifikasi' : 'Draft'}
                     </button>
                   </td>
-                  <td className="p-4 text-right space-x-3">
-                    <button className="text-primary hover:opacity-70 transition-opacity" title="Edit Paket">
-                      <Edit className="w-4 h-4 inline" />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(t.id)}
-                      className="text-semantic-error hover:opacity-70 transition-opacity" 
-                      title="Hapus Paket"
-                    >
-                      <Trash2 className="w-4 h-4 inline" />
-                    </button>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit Paket">
+                        <span className="material-symbols-outlined text-[20px]">edit</span>
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(t.id)}
+                        className="p-2 text-error-red hover:bg-error-red/10 rounded-lg transition-colors" 
+                        title="Hapus Paket"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">delete</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -127,6 +163,24 @@ export default function TestTableClient({ initialTests }: { initialTests: TestDa
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {tests.length > 0 && (
+        <div className="p-6 bg-surface-container-low border-t border-outline-variant flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="font-label-md text-label-md text-on-surface-variant">
+            Menampilkan <span className="font-bold text-on-surface">1 - {tests.length}</span> dari <span className="font-bold text-on-surface">{tests.length}</span> paket ujian
+          </p>
+          <div className="flex items-center gap-2">
+            <button className="p-2 rounded-lg border border-outline-variant hover:bg-surface-container-high disabled:opacity-50 transition-colors" disabled>
+              <span className="material-symbols-outlined">chevron_left</span>
+            </button>
+            <button className="w-10 h-10 bg-primary text-on-primary rounded-lg font-bold">1</button>
+            <button className="p-2 rounded-lg border border-outline-variant hover:bg-surface-container-high disabled:opacity-50 transition-colors" disabled>
+              <span className="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

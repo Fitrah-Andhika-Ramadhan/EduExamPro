@@ -24,6 +24,7 @@
     "midtrans-client": "^1.4.3",
     "next": "16.2.6",
     "next-auth": "^5.0.0-beta.20",
+    "pg": "^8.21.0",
     "postgres": "^3.4.9",
     "react": "^19",
     "react-dom": "^19",
