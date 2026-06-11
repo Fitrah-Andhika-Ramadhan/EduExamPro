@@ -14,6 +14,9 @@ importers:
       '@libsql/client':
         specifier: ^0.17.3
         version: 0.17.3
+      '@types/katex':
+        specifier: ^0.16.8
+        version: 0.16.8
       '@vercel/analytics':
         specifier: 1.6.1
         version: 1.6.1(next@16.2.6(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
@@ -32,6 +35,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@libsql/client@0.17.3)(@types/pg@8.20.0)(kysely@0.29.1)(pg@8.21.0)(postgres@3.4.9)
+      katex:
+        specifier: ^0.17.0
+        version: 0.17.0
       lucide-react:
         specifier: ^1.16.0
         version: 1.17.0(react@19.2.4)
@@ -1246,6 +1252,9 @@ packages:
   '@ts-morph/common@0.27.0':
     resolution: {integrity: sha512-Wf29UqxWDpc+i61k3oIOzcUfQt79PIT9y/MWfAGlrkjg6lBC1hwDECLXPVJAhWjiGbfBCxZd65F/LIZF3+jeJQ==}
 
+  '@types/katex@0.16.8':
+    resolution: {integrity: sha512-trgaNyfU+Xh2Tc+ABIb44a5AYUpicB3uwirOioeOkNPPbmgRNtcWyDeeFRzjPZENO9Vq8gvVqfhaaXWLlevVwg==}
+
   '@types/midtrans-client@1.4.0':
     resolution: {integrity: sha512-7EhZ3VR/g4JhIpIywuOllBFjaS0ZDjlgbPlPmma6XsC+i6rx5+9P8Rk1y7gtRh7TRL9Zerr4MAtS3m9pIuIveQ==}
 
@@ -1473,6 +1482,10 @@ packages:
   commander@14.0.3:
     resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
     engines: {node: '>=20'}
+
+  commander@8.3.0:
+    resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
+    engines: {node: '>= 12'}
 
   content-disposition@1.1.0:
     resolution: {integrity: sha512-5jRCH9Z/+DRP7rkvY83B+yGIGX96OYdJmzngqnw2SBSxqCFPd0w2km3s5iawpGX8krnwSGmF0FW5Nhr0Hfai3g==}
@@ -2145,6 +2158,10 @@ packages:
 
   jszip@3.10.1:
     resolution: {integrity: sha512-xXDvecyTpGLrqFrvkrUSoxxfJI5AH7U8zxxtVclpsUtMCq4JQ290LY8AW5c7Ggnr/Y/oK+bQMbqK2qmtk3pN4g==}
+
+  katex@0.17.0:
+    resolution: {integrity: sha512-Vdw0ATsQ9V+LuegM/BTwQqV/6cTl5lbGcIrU+BCgLxyf6bo38ybOr372tuSIxir3CN720flu1meYR6XzNMwQnw==}
+    hasBin: true
 
   kleur@3.0.3:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
@@ -3915,6 +3932,8 @@ snapshots:
       minimatch: 10.2.5
       path-browserify: 1.0.1
 
+  '@types/katex@0.16.8': {}
+
   '@types/midtrans-client@1.4.0': {}
 
   '@types/node@24.10.4':
@@ -4115,6 +4134,8 @@ snapshots:
   commander@11.1.0: {}
 
   commander@14.0.3: {}
+
+  commander@8.3.0: {}
 
   content-disposition@1.1.0: {}
 
@@ -4717,6 +4738,10 @@ snapshots:
       pako: 1.0.11
       readable-stream: 2.3.8
       setimmediate: 1.0.5
+
+  katex@0.17.0:
+    dependencies:
+      commander: 8.3.0
 
   kleur@3.0.3: {}
 
