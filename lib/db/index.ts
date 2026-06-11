@@ -1,9 +1,8 @@
-import { drizzle } from 'drizzle-orm/libsql'
-import { createClient } from '@libsql/client'
-import * as schema from './schema'
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
 
-export const client = createClient({
-  url: process.env.DATABASE_URL || 'file:local.db',
-})
+const connectionString = process.env.DATABASE_URL || ''
 
-export const db = drizzle(client, { schema })
+// Disable prefetch as it is not supported for "Transaction" pool mode
+export const client = postgres(connectionString, { prepare: false })
+export const db = drizzle(client)

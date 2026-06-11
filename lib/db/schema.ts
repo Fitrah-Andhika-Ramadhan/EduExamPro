@@ -1,27 +1,27 @@
-import { sqliteTable, text, integer, index, real } from 'drizzle-orm/sqlite-core'
+import { pgTable, text, integer, index, timestamp, boolean, serial, varchar } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 // Better Auth Tables (required)
-export const user = sqliteTable('user', {
+export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name'),
   email: text('email').notNull().unique(),
-  emailVerified: integer('emailVerified', { mode: 'boolean' }).notNull().default(false),
+  emailVerified: boolean('emailVerified').notNull().default(false),
   image: text('image'),
   password: text('password'),
   role: text('role', { enum: ['user', 'admin'] }).default('user').notNull(),
   plan: text('plan', { enum: ['free', 'pro'] }).default('free').notNull(),
-  planExpiresAt: integer('planExpiresAt', { mode: 'timestamp' }),
-  createdAt: integer('createdAt', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-  updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  planExpiresAt: timestamp('planExpiresAt', { mode: 'date' }),
+  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().$defaultFn(() => new Date()),
 })
 
-export const session = sqliteTable('session', {
+export const session = pgTable('session', {
   id: text('id').primaryKey(),
-  expiresAt: integer('expiresAt', { mode: 'timestamp' }).notNull(),
+  expiresAt: timestamp('expiresAt', { mode: 'date' }).notNull(),
   token: text('token').notNull().unique(),
-  createdAt: integer('createdAt', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
+  createdAt: timestamp('createdAt', { mode: 'date' }).notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull(),
   ipAddress: text('ipAddress'),
   userAgent: text('userAgent'),
   userId: text('userId')
@@ -29,7 +29,7 @@ export const session = sqliteTable('session', {
     .references(() => user.id),
 })
 
-export const account = sqliteTable('account', {
+export const account = pgTable('account', {
   id: text('id').primaryKey(),
   accountId: text('accountId').notNull(),
   providerId: text('providerId').notNull(),
@@ -39,50 +39,50 @@ export const account = sqliteTable('account', {
   accessToken: text('accessToken'),
   refreshToken: text('refreshToken'),
   idToken: text('idToken'),
-  expiresAt: integer('expiresAt', { mode: 'timestamp' }),
+  expiresAt: timestamp('expiresAt', { mode: 'date' }),
   password: text('password'),
-  createdAt: integer('createdAt', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
+  createdAt: timestamp('createdAt', { mode: 'date' }).notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull(),
 })
 
-export const verification = sqliteTable('verification', {
+export const verification = pgTable('verification', {
   id: text('id').primaryKey(),
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
-  expiresAt: integer('expiresAt', { mode: 'timestamp' }).notNull(),
-  createdAt: integer('createdAt', { mode: 'timestamp' }),
-  updatedAt: integer('updatedAt', { mode: 'timestamp' }),
+  expiresAt: timestamp('expiresAt', { mode: 'date' }).notNull(),
+  createdAt: timestamp('createdAt', { mode: 'date' }),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }),
 })
 
 // EduBangsa Tables
-export const categories = sqliteTable(
+export const categories = pgTable(
   'categories',
   {
-    id: integer('id').primaryKey({ autoIncrement: true }),
-    name: text('name', { length: 255 }).notNull(),
-    slug: text('slug', { length: 255 }).unique(),
+    id: serial('id').primaryKey(),
+    name: varchar('name', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).unique(),
     description: text('description'),
     userId: text('userId').notNull(),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-    updatedAt: integer('updatedAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
+    updatedAt: timestamp('updatedAt', { mode: 'date' }).$defaultFn(() => new Date()),
   },
   (table) => ({
     userIdx: index('idx_categories_user').on(table.userId),
   })
 )
 
-export const questions = sqliteTable(
+export const questions = pgTable(
   'questions',
   {
-    id: integer('id').primaryKey({ autoIncrement: true }),
+    id: serial('id').primaryKey(),
     categoryId: integer('categoryId').notNull(),
-    type: text('type', { length: 50 }).default('multiple_choice'),
+    type: varchar('type', { length: 50 }).default('multiple_choice'),
     questionText: text('question_text').notNull(),
     explanation: text('explanation'),
-    difficulty: text('difficulty', { length: 20 }).default('medium'),
+    difficulty: varchar('difficulty', { length: 20 }).default('medium'),
     userId: text('userId').notNull(),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-    updatedAt: integer('updatedAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
+    updatedAt: timestamp('updatedAt', { mode: 'date' }).$defaultFn(() => new Date()),
   },
   (table) => ({
     categoryIdx: index('idx_questions_category').on(table.categoryId),
@@ -90,36 +90,36 @@ export const questions = sqliteTable(
   })
 )
 
-export const options = sqliteTable(
+export const options = pgTable(
   'options',
   {
-    id: integer('id').primaryKey({ autoIncrement: true }),
+    id: serial('id').primaryKey(),
     questionId: integer('questionId').notNull(),
     optionText: text('option_text').notNull(),
-    isCorrect: integer('is_correct', { mode: 'boolean' }).default(false),
+    isCorrect: boolean('is_correct').default(false),
     orderIndex: integer('order_index'),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
   },
   (table) => ({
     questionIdx: index('idx_options_question').on(table.questionId),
   })
 )
 
-export const tests = sqliteTable(
+export const tests = pgTable(
   'tests',
   {
-    id: integer('id').primaryKey({ autoIncrement: true }),
-    title: text('title', { length: 255 }).notNull(),
+    id: serial('id').primaryKey(),
+    title: varchar('title', { length: 255 }).notNull(),
     description: text('description'),
     categoryId: integer('categoryId').notNull(),
     durationMinutes: integer('duration_minutes').default(60),
     passingScore: integer('passing_score').default(70),
-    showResults: integer('show_results', { mode: 'boolean' }).default(true),
-    showAnswers: integer('show_answers', { mode: 'boolean' }).default(false),
-    isPublished: integer('is_published', { mode: 'boolean' }).default(false),
+    showResults: boolean('show_results').default(true),
+    showAnswers: boolean('show_answers').default(false),
+    isPublished: boolean('is_published').default(false),
     userId: text('userId').notNull(),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-    updatedAt: integer('updatedAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
+    updatedAt: timestamp('updatedAt', { mode: 'date' }).$defaultFn(() => new Date()),
   },
   (table) => ({
     categoryIdx: index('idx_tests_category').on(table.categoryId),
@@ -128,33 +128,33 @@ export const tests = sqliteTable(
   })
 )
 
-export const testQuestions = sqliteTable(
+export const testQuestions = pgTable(
   'test_questions',
   {
-    id: integer('id').primaryKey({ autoIncrement: true }),
+    id: serial('id').primaryKey(),
     testId: integer('testId').notNull(),
     questionId: integer('questionId').notNull(),
     orderIndex: integer('order_index'),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
   },
   (table) => ({
     testIdx: index('idx_test_questions_test').on(table.testId),
   })
 )
 
-export const results = sqliteTable(
+export const results = pgTable(
   'results',
   {
-    id: integer('id').primaryKey({ autoIncrement: true }),
+    id: serial('id').primaryKey(),
     testId: integer('testId').notNull(),
     userId: text('userId').notNull(),
     score: integer('score'),
-    percentage: text('percentage'), // text for decimal equivalent in sqlite
-    passed: integer('passed', { mode: 'boolean' }),
+    percentage: text('percentage'), // text to store formatting like "85.5"
+    passed: boolean('passed'),
     durationSeconds: integer('duration_seconds'),
-    startedAt: integer('started_at', { mode: 'timestamp' }),
-    completedAt: integer('completed_at', { mode: 'timestamp' }),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    startedAt: timestamp('started_at', { mode: 'date' }),
+    completedAt: timestamp('completed_at', { mode: 'date' }),
+    createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
   },
   (table) => ({
     testIdx: index('idx_results_test').on(table.testId),
@@ -162,55 +162,55 @@ export const results = sqliteTable(
   })
 )
 
-export const transactions = sqliteTable(
+export const transactions = pgTable(
   'transactions',
   {
     id: text('id').primaryKey(), // Midtrans Order ID
     userId: text('userId').notNull().references(() => user.id),
     amount: integer('amount').notNull(),
-    status: text('status', { length: 50 }).notNull().default('pending'), // pending, settlement, cancel, expire, deny
-    paymentType: text('payment_type', { length: 50 }),
+    status: varchar('status', { length: 50 }).notNull().default('pending'), // pending, settlement, cancel, expire, deny
+    paymentType: varchar('payment_type', { length: 50 }),
     snapToken: text('snap_token'),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-    updatedAt: integer('updatedAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
+    updatedAt: timestamp('updatedAt', { mode: 'date' }).$defaultFn(() => new Date()),
   },
   (table) => ({
     userIdx: index('idx_transactions_user').on(table.userId),
   })
 )
 
-export const userAnswers = sqliteTable(
+export const userAnswers = pgTable(
   'user_answers',
   {
-    id: integer('id').primaryKey({ autoIncrement: true }),
+    id: serial('id').primaryKey(),
     resultId: integer('resultId').notNull(),
     questionId: integer('questionId').notNull(),
     optionId: integer('optionId'),
     answerText: text('answer_text'),
-    isCorrect: integer('is_correct', { mode: 'boolean' }),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    isCorrect: boolean('is_correct'),
+    createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
   },
   (table) => ({
     resultIdx: index('idx_user_answers_result').on(table.resultId),
   })
 )
 
-export const coupons = sqliteTable(
+export const coupons = pgTable(
   'coupons',
   {
-    id: integer('id').primaryKey({ autoIncrement: true }),
-    code: text('code', { length: 50 }).notNull().unique(),
+    id: serial('id').primaryKey(),
+    code: varchar('code', { length: 50 }).notNull().unique(),
     discountPercent: integer('discount_percent').notNull(),
-    isActive: integer('is_active', { mode: 'boolean' }).default(true),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    isActive: boolean('is_active').default(true),
+    createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
   }
 )
 
-export const settings = sqliteTable(
+export const settings = pgTable(
   'settings',
   {
     id: text('id').primaryKey(),
     value: text('value').notNull(),
-    updatedAt: integer('updatedAt', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: timestamp('updatedAt', { mode: 'date' }).$defaultFn(() => new Date()),
   }
 )
