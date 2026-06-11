@@ -4,6 +4,7 @@ export async function AdminTopbar() {
   const session = await auth();
   const userName = session?.user?.name || 'Admin Institusi';
   const userImage = session?.user?.image || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDlViOBIrbi7H6kB0GYR_fj3nZeQRJVNLVgzGiSUkl0Ro2D8mZHa2TMrfYPl_4QMorzFkbcj0bQCj9hjlGPOm5cDfdyA-_JbODXun_ihNEhpkDuLb-kJ0QxTx5oGgvbGrcM2V8AQ_AYKI3aO5LS8kCKt0MVmQyd1gtv_KstQEOQiWkDCxukAtSAuySf3I8XmYn814pqkkwzApQaET6NgpthMv2DJ5ulqiP8lHmT1Ggmr-u1IbU_QuEaWZ-wXQQ3t4G0Vi8H4xKOxc-H';
+  // @ts-ignore
   const roleName = session?.user?.role === 'admin' ? 'Super Administrator' : 'Instruktur';
 
   return (
