@@ -6,8 +6,10 @@ import { redirect } from 'next/navigation'
 export default async function LandingPage() {
   const session = await auth()
   
-  if (session) {
+  if (session?.user) {
+    // @ts-ignore
     if (session.user.role === 'admin') redirect('/admin/dashboard')
+    // @ts-ignore
     if (session.user.role === 'instructor') redirect('/instructor/dashboard')
     redirect('/dashboard')
   }
