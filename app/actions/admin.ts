@@ -5,6 +5,8 @@ import { db } from '@/lib/db'
 import { user, tests, results, questions, options } from '@/lib/db/schema'
 import { eq, inArray } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+// @ts-ignore
+import bcrypt from 'bcryptjs'
 
 async function ensureAdmin() {
   const session = await auth()
@@ -44,12 +46,74 @@ export async function updateUserRole(userId: string, newRole: 'admin' | 'user') 
   }
 }
 
+export async function createUser(data: {
+  name: string
+  email: string
+  password: string
+  role: 'admin' | 'user'
+  plan: 'free' | 'pro'
+}) {
+  await ensureAdmin()
+
+  try {
+    // Check duplicate
+    const existing = await db.select({ id: user.id }).from(user).where(eq(user.email, data.email)).limit(1)
+    if (existing.length > 0) {
+      return { success: false, message: 'Email sudah terdaftar' }
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 10)
+
+    await db.insert(user).values({
+      id: `user_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      name: data.name,
+      email: data.email,
+      password: hashedPassword,
+      role: data.role,
+      plan: data.plan,
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+
+    revalidatePath('/admin/users')
+    return { success: true, message: `Pengguna ${data.email} berhasil dibuat` }
+  } catch (err: any) {
+    return { success: false, message: err.message || 'Gagal membuat pengguna' }
+  }
+}
+
+export async function updateUser(userId: string, data: {
+  name?: string
+  email?: string
+  role?: 'admin' | 'user'
+  plan?: 'free' | 'pro'
+  newPassword?: string
+}) {
+  await ensureAdmin()
+
+  try {
+    const updateData: any = { updatedAt: new Date() }
+    if (data.name) updateData.name = data.name
+    if (data.email) updateData.email = data.email
+    if (data.role) updateData.role = data.role
+    if (data.plan) updateData.plan = data.plan
+    if (data.newPassword) {
+      updateData.password = await bcrypt.hash(data.newPassword, 10)
+    }
+
+    await db.update(user).set(updateData).where(eq(user.id, userId))
+    revalidatePath('/admin/users')
+    return { success: true, message: 'Data pengguna berhasil diperbarui' }
+  } catch (err: any) {
+    return { success: false, message: err.message || 'Gagal memperbarui pengguna' }
+  }
+}
+
 export async function deleteTest(testId: string) {
   await ensureAdmin()
   
   try {
-    // Drizzle will handle cascades if configured, but manually we can delete questions/options if not
-    // Assuming simple delete for now (SQLite with PRAGMA foreign_keys = ON handles cascade usually)
     await db.delete(tests).where(eq(tests.id, Number(testId)))
     revalidatePath('/admin/tests')
     return { success: true, message: 'Paket ujian berhasil dihapus' }
