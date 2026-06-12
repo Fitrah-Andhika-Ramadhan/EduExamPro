@@ -169,7 +169,7 @@ export default async function LandingPage() {
 
               {/* Stats Preview */}
               <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-5xl">
-                {config.stats.map((stat, i) => (
+                {config.stats.map((stat: any, i: number) => (
                   <div key={i} className="text-center">
                     <div className="text-white font-headline-lg text-headline-lg mb-1">{stat.value}</div>
                     <div className="text-on-primary-container font-label-md text-label-md uppercase">{stat.label}</div>
@@ -291,7 +291,7 @@ export default async function LandingPage() {
                 <h2 className="font-headline-lg text-headline-lg text-primary">Kisah Sukses Bersama Kami</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {config.testimonials.map((testi, i) => (
+                {config.testimonials.map((testi: any, i: number) => (
                   <div key={i} className="glass-card p-8 rounded-xl flex flex-col">
                     <div className="flex text-warning-orange mb-4">
                       {[...Array(5)].map((_, idx) => (
