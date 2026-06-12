@@ -1,4 +1,3 @@
-import UserSidebar from '@/components/layout/UserSidebar';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
@@ -19,11 +18,8 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="bg-background text-on-surface font-body-md min-h-screen flex overflow-hidden">
-      <UserSidebar />
-      <main className="ml-64 flex-1 flex flex-col h-screen overflow-y-auto custom-scrollbar">
-        {children}
-      </main>
+    <div className="bg-background min-h-screen flex flex-col">
+      {children}
     </div>
   );
 }

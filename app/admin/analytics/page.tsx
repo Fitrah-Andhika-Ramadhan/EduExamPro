@@ -2,8 +2,9 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { transactions, user, results, tests } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 import { BarChart, TrendingUp, Users, FileText, CheckCircle2 } from 'lucide-react'
+import ResultTableClient from '@/components/admin/result-table-client'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,28 +16,51 @@ export default async function AdminAnalyticsPage() {
   }
 
   const allUsers = await db.select().from(user)
-  const allResults = await db.select().from(results)
+  const allResultsRaw = await db.select().from(results)
   const allTests = await db.select().from(tests)
   const allTrxs = await db.select().from(transactions).where(eq(transactions.status, 'settlement'))
 
   const totalRevenue = allTrxs.reduce((sum, t) => sum + t.amount, 0)
   const totalUsers = allUsers.length
   const proUsers = allUsers.filter(u => u.plan === 'pro').length
-  const totalExamsTaken = allResults.length
+  const totalExamsTaken = allResultsRaw.length
+
+  // Fetch detailed results for the table
+  const allDetailedResults = await db
+    .select({
+      id: results.id,
+      score: results.score,
+      percentage: results.percentage,
+      passed: results.passed,
+      durationSeconds: results.durationSeconds,
+      completedAt: results.completedAt,
+      userName: user.name,
+      userEmail: user.email,
+      testTitle: tests.title,
+    })
+    .from(results)
+    .leftJoin(user, eq(results.userId, user.id))
+    .leftJoin(tests, eq(results.testId, tests.id))
+    .orderBy(desc(results.completedAt))
+
+  const formattedResults = allDetailedResults.map(r => ({
+    ...r,
+    id: String(r.id)
+  }))
 
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-8">
+    <div className="space-y-8 animate-fade-in p-2 md:p-4">
+      <div className="flex items-center gap-4 mb-2">
         <div className="w-12 h-12 bg-surface-aubergine rounded-xl flex items-center justify-center">
           <BarChart className="w-6 h-6 text-on-primary" />
         </div>
         <div>
-          <h1 className="heading-xl text-ink">Laporan & Analitik</h1>
-          <p className="body-md text-ink-mute">Ringkasan performa dan data pertumbuhan platform.</p>
+          <h1 className="heading-xl text-ink">Hasil & Analitik</h1>
+          <p className="body-md text-ink-mute">Ringkasan performa dan data ujian platform.</p>
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-canvas rounded-xl p-6 border border-hairline hover:elev-1 transition-shadow">
           <div className="flex justify-between items-start mb-4">
             <div className="w-10 h-10 rounded-lg bg-semantic-success/10 flex items-center justify-center">
@@ -82,7 +106,7 @@ export default async function AdminAnalyticsPage() {
         <h3 className="heading-md mb-6">Paket Ujian Paling Populer</h3>
         <div className="space-y-4">
           {allTests.slice(0, 5).map((test, i) => {
-            const count = allResults.filter(r => r.testId === test.id).length
+            const count = allResultsRaw.filter(r => r.testId === test.id).length
             const percentage = totalExamsTaken > 0 ? (count / totalExamsTaken) * 100 : 0
             
             return (
@@ -98,6 +122,15 @@ export default async function AdminAnalyticsPage() {
             )
           })}
         </div>
+      </div>
+
+      {/* Results Table Section */}
+      <div className="mt-12 pt-8 border-t border-hairline">
+        <div className="mb-6">
+          <h2 className="heading-lg text-ink">Pemantauan Hasil Ujian</h2>
+          <p className="body-md text-ink-mute">Lihat daftar nilai ujian seluruh peserta secara real-time.</p>
+        </div>
+        <ResultTableClient initialResults={formattedResults} />
       </div>
     </div>
   )
