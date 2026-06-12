@@ -26,25 +26,20 @@ const sidebarGroups = [
     ]
   },
   {
-    title: 'Akademik & Konten',
+    title: 'Manajemen Fitur User',
     links: [
+      { href: '/admin/users', label: 'Data Pengguna', icon: Users },
       { href: '/admin/courses', label: 'Silabus Pembelajaran', icon: GraduationCap },
       { href: '/admin/tests', label: 'Paket Tryout', icon: FileText },
       { href: '/admin/questions', label: 'Bank Soal', icon: Database },
     ]
   },
   {
-    title: 'Pengguna & Laporan',
-    links: [
-      { href: '/admin/users', label: 'Data Pengguna', icon: Users },
-      { href: '/admin/analytics', label: 'Hasil & Analitik', icon: BarChart },
-    ]
-  },
-  {
-    title: 'Bisnis & Sistem',
+    title: 'Sistem & Operasional',
     links: [
       { href: '/admin/finance', label: 'Keuangan & Promo', icon: Wallet },
-      { href: '/admin/settings', label: 'Sistem & Pengaturan', icon: Settings },
+      { href: '/admin/analytics', label: 'Analitik & Laporan', icon: BarChart },
+      { href: '/admin/settings', label: 'Pengaturan Sistem', icon: Settings },
     ]
   }
 ]
