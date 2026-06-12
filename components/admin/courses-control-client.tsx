@@ -144,12 +144,12 @@ export default function CoursesControlClient() {
         </div>
       )}
 
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
         <div>
           <h2 className="font-bold text-gray-800">Daftar Modul Silabus</h2>
           <p className="text-xs text-gray-500">Geser (drag & drop) materi untuk mengatur urutan. Gunakan Draft untuk menyembunyikan modul.</p>
         </div>
-        <button onClick={addCourse} className="flex items-center gap-1 text-sm font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg hover:bg-indigo-100 transition-colors">
+        <button onClick={addCourse} className="flex items-center justify-center gap-1 text-sm font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg hover:bg-indigo-100 transition-colors w-full sm:w-auto">
           <Plus className="w-4 h-4" /> Tambah Modul
         </button>
       </div>
@@ -158,14 +158,14 @@ export default function CoursesControlClient() {
         {courses.map((course, cIdx) => (
           <div key={course.id} className={`bg-white rounded-2xl border ${course.isPublished !== false ? 'border-indigo-100 shadow-md' : 'border-gray-200 shadow-sm opacity-80'} p-6 relative transition-all`}>
             
-            <div className="absolute top-4 right-4 flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:absolute sm:top-4 sm:right-4 gap-2 mb-4 sm:mb-0">
               <button 
                 onClick={() => updateCourse(cIdx, 'isPublished', course.isPublished === false ? true : false)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${course.isPublished !== false ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                className={`flex items-center justify-center flex-1 sm:flex-none gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${course.isPublished !== false ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 {course.isPublished !== false ? <><Eye className="w-4 h-4"/> Published</> : <><EyeOff className="w-4 h-4"/> Draft</>}
               </button>
-              <button onClick={() => removeCourse(cIdx)} className="bg-red-50 text-red-600 p-1.5 rounded-lg hover:bg-red-100 transition-colors">
+              <button onClick={() => removeCourse(cIdx)} className="bg-red-50 text-red-600 p-1.5 rounded-lg hover:bg-red-100 transition-colors flex justify-center items-center">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -213,57 +213,61 @@ export default function CoursesControlClient() {
                       onDragEnd={handleDragEnd}
                       className={`group flex flex-col gap-2 bg-white p-3 rounded-xl border border-gray-200 shadow-sm transition-all ${isDragging ? 'opacity-40 border-indigo-400 scale-[0.98]' : 'hover:border-indigo-200'}`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600">
-                          <GripVertical className="w-5 h-5" />
-                        </div>
-                        
-                        <input 
-                          value={topic.title}
-                          onChange={e => updateTopic(cIdx, tIdx, 'title', e.target.value)}
-                          placeholder="Judul Materi..."
-                          className="flex-1 font-semibold text-sm border-b border-transparent hover:border-gray-200 focus:border-indigo-500 outline-none pb-1"
-                        />
-
-                        <select 
-                          value={topic.type}
-                          onChange={e => updateTopic(cIdx, tIdx, 'type', e.target.value)}
-                          className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none bg-gray-50 focus:border-indigo-500 font-medium"
-                        >
-                          <option value="video">Video Materi</option>
-                          <option value="live">Live Mentoring</option>
-                          <option value="document">PDF/Doc</option>
-                          <option value="quiz">Kuis</option>
-                        </select>
-
-                        <label className="flex items-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 px-2.5 py-1.5 rounded-lg cursor-pointer border border-amber-200 transition-colors">
+                      <div className="flex flex-col md:flex-row md:items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <div className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 shrink-0">
+                            <GripVertical className="w-5 h-5" />
+                          </div>
+                          
                           <input 
-                            type="checkbox" 
-                            checked={topic.isPremium}
-                            onChange={e => updateTopic(cIdx, tIdx, 'isPremium', e.target.checked)}
-                            className="rounded text-amber-500"
+                            value={topic.title}
+                            onChange={e => updateTopic(cIdx, tIdx, 'title', e.target.value)}
+                            placeholder="Judul Materi..."
+                            className="flex-1 font-semibold text-sm border-b border-gray-200 hover:border-gray-300 focus:border-indigo-500 outline-none pb-1"
                           />
-                          Premium
-                        </label>
+                        </div>
 
-                        <button onClick={() => removeTopic(cIdx, tIdx)} className="text-red-400 p-1.5 hover:bg-red-50 hover:text-red-600 rounded-lg shrink-0 transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex flex-wrap md:flex-nowrap items-center gap-2 ml-8 md:ml-0">
+                          <select 
+                            value={topic.type}
+                            onChange={e => updateTopic(cIdx, tIdx, 'type', e.target.value)}
+                            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none bg-gray-50 focus:border-indigo-500 font-medium w-full sm:w-auto"
+                          >
+                            <option value="video">Video Materi</option>
+                            <option value="live">Live Mentoring</option>
+                            <option value="document">PDF/Doc</option>
+                            <option value="quiz">Kuis</option>
+                          </select>
+
+                          <label className="flex items-center justify-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 px-2.5 py-1.5 rounded-lg cursor-pointer border border-amber-200 transition-colors flex-1 sm:flex-none">
+                            <input 
+                              type="checkbox" 
+                              checked={topic.isPremium}
+                              onChange={e => updateTopic(cIdx, tIdx, 'isPremium', e.target.checked)}
+                              className="rounded text-amber-500"
+                            />
+                            Premium
+                          </label>
+
+                          <button onClick={() => removeTopic(cIdx, tIdx)} className="text-red-400 p-1.5 hover:bg-red-50 hover:text-red-600 rounded-lg shrink-0 transition-colors ml-auto md:ml-0 border border-transparent md:border-none">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       {(topic.type === 'video' || topic.type === 'document' || topic.type === 'live') && (
-                        <div className="ml-10 flex items-center gap-2">
-                          <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
+                        <div className="mt-2 md:ml-10 flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 w-full">
                             <span className="pl-3 pr-2 text-gray-400"><LinkIcon className="w-4 h-4"/></span>
                             <input 
                               value={topic.url || ''}
                               onChange={e => updateTopic(cIdx, tIdx, 'url', e.target.value)}
                               placeholder="URL Media (Link YouTube / Google Drive / URL PDF)"
-                              className="flex-1 text-xs py-2 bg-transparent outline-none"
+                              className="flex-1 text-xs py-2 pr-2 bg-transparent outline-none w-full"
                             />
                           </div>
                           
-                          <div className="shrink-0 relative">
+                          <div className="shrink-0 relative w-full sm:w-auto">
                             <input 
                               type="file" 
                               id={`file-upload-${cIdx}-${tIdx}`}
@@ -274,7 +278,7 @@ export default function CoursesControlClient() {
                             />
                             <label 
                               htmlFor={`file-upload-${cIdx}-${tIdx}`}
-                              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold cursor-pointer transition-colors border ${
+                              className={`w-full sm:w-auto justify-center flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold cursor-pointer transition-colors border ${
                                 isUploading 
                                   ? 'bg-gray-100 text-gray-400 border-gray-200' 
                                   : 'bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50'
@@ -300,15 +304,15 @@ export default function CoursesControlClient() {
         ))}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 p-4 lg:pl-64 flex justify-end z-40">
-        <div className="max-w-7xl mx-auto w-full flex justify-end px-4 sm:px-6">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 p-4 md:pl-64 flex justify-end z-40">
+        <div className="w-full flex justify-end px-4">
           <button 
             onClick={handleSave} 
             disabled={isSaving}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:transform-none disabled:shadow-none"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:transform-none disabled:shadow-none"
           >
             {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-            {isSaving ? 'Menyimpan Perubahan...' : 'Simpan Silabus'}
+            {isSaving ? 'Menyimpan...' : 'Simpan Silabus'}
           </button>
         </div>
       </div>
