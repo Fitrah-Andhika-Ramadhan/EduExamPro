@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth-client'
 
-export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
+export function AuthForm({ mode, redirectTo }: { mode: 'sign-in' | 'sign-up', redirectTo?: string }) {
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -39,7 +39,7 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
           router.push('/sign-in')
           return
         }
-        router.push('/choose-plan')
+        router.push(redirectTo || '/choose-plan')
         router.refresh()
       } else {
         const result = await authClient.signIn.email({ email, password })
@@ -56,7 +56,7 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
         if (role === 'admin') {
           router.push('/admin/dashboard')
         } else {
-          router.push('/dashboard')
+          router.push(redirectTo || '/dashboard')
         }
         router.refresh()
       }
@@ -80,7 +80,13 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
             <span className="material-symbols-outlined text-primary text-3xl" style={{fontVariationSettings: "'FILL' 1"}}>school</span>
             <span className="font-headline-sm text-headline-sm font-bold text-primary tracking-tight">EduExam Pro</span>
           </Link>
-          <Link href={isSignUp ? '/sign-in' : '/sign-up'} className="font-label-md text-label-md text-primary font-bold hover:underline">
+          <Link 
+            href={isSignUp 
+              ? `/sign-in${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}` 
+              : `/sign-up${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`
+            } 
+            className="font-label-md text-label-md text-primary font-bold hover:underline"
+          >
             {isSignUp ? 'Sudah punya akun? Masuk' : 'Belum punya akun? Daftar'}
           </Link>
         </header>
@@ -110,12 +116,29 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
           <div className="flex-1 flex items-center justify-center p-6 bg-surface-container-low relative">
             <div className="w-full max-w-md glass-card p-8 sm:p-10 rounded-2xl shadow-sm border border-outline-variant relative z-10">
               
+              {redirectTo && (
+                <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                  <span className="material-symbols-outlined text-amber-500 text-[20px] shrink-0 mt-0.5" style={{fontVariationSettings: "'FILL' 1"}}>shopping_cart</span>
+                  <div>
+                    <p className="font-bold text-amber-800 text-sm">Hampir selesai!</p>
+                    <p className="text-amber-700 text-xs mt-0.5 leading-relaxed">
+                      {isSignUp 
+                        ? 'Daftarkan akun Anda terlebih dahulu, lalu Anda akan otomatis diarahkan kembali untuk menyelesaikan pembayaran.' 
+                        : 'Masuk ke akun Anda untuk melanjutkan proses pembayaran yang tadi.'
+                      }
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="mb-10">
                 <h2 className="font-headline-lg text-headline-lg text-primary mb-2">
                   {isSignUp ? 'Buat Akun Baru' : 'Selamat Datang Kembali'}
                 </h2>
                 <p className="font-body-md text-body-md text-on-surface-variant">
-                  {isSignUp ? 'Silakan lengkapi data diri Anda di bawah ini.' : 'Masukkan email dan kata sandi Anda.'}
+                  {isSignUp 
+                    ? (redirectTo ? 'Daftar untuk melanjutkan pembayaran Anda.' : 'Silakan lengkapi data diri Anda di bawah ini.') 
+                    : (redirectTo ? 'Masuk untuk melanjutkan pembayaran Anda.' : 'Masukkan email dan kata sandi Anda.')
+                  }
                 </p>
               </div>
 

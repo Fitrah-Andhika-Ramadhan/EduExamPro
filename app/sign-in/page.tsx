@@ -2,8 +2,14 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { AuthForm } from '@/components/auth-form'
 
-export default async function SignInPage() {
+export default async function SignInPage({
+  searchParams
+}: {
+  searchParams: Promise<{ redirect?: string }>
+}) {
   const session = await auth()
   if (session?.user) redirect('/')
-  return <AuthForm mode="sign-in" />
+  const params = await searchParams
+  const redirectTo = params.redirect || undefined
+  return <AuthForm mode="sign-in" redirectTo={redirectTo} />
 }

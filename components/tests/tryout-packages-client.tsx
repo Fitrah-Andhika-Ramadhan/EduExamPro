@@ -223,12 +223,20 @@ export default function TryoutPackagesClient({
                   {/* Buttons */}
                   <div className="flex items-center gap-2 pt-4 border-t border-gray-100 mt-auto">
                     {!isPurchased && test.price != null ? (
-                       <Link 
-                         href="/cart"
+                       <button 
+                         onClick={() => {
+                           useCartStore.getState().addItem({
+                             id: String(test.id),
+                             title: test.title,
+                             price: test.price!,
+                             type: 'test'
+                           })
+                           router.push('/cart')
+                         }}
                          className="flex-1 text-center py-2.5 rounded-xl font-bold text-sm bg-[#217b9b] text-white hover:bg-[#19637c] shadow-md shadow-[#217b9b]/20 transition-all"
                        >
                          Beli Sekarang ➔
-                       </Link>
+                       </button>
                     ) : (
                       <Link 
                         href={isLocked ? '/choose-plan' : (userRole === 'public' ? '/sign-in' : `/tests/${test.id}/take`)}

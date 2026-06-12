@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ShoppingCart, Check, BookOpen, Video, FileText, PlayCircle, Lock } from 'lucide-react'
 import { useCartStore } from '@/lib/store/cart-store'
 
@@ -28,6 +29,7 @@ export default function CoursesClient({
   myPurchases = [],
   isPublic
 }: CoursesClientProps) {
+  const router = useRouter()
   const purchasesSet = new Set(myPurchases)
 
   return (
@@ -110,12 +112,20 @@ export default function CoursesClient({
               {/* Buttons */}
               <div className="flex items-center gap-2 pt-4 border-t border-gray-100 mt-auto">
                 {!isPurchased && course.price != null ? (
-                   <Link 
-                     href="/cart"
+                   <button 
+                     onClick={() => {
+                       useCartStore.getState().addItem({
+                         id: String(course.id),
+                         title: course.title,
+                         price: course.price!,
+                         type: 'course'
+                       })
+                       router.push('/cart')
+                     }}
                      className="flex-1 text-center py-3 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-600/20 transition-all"
                    >
                      Beli Kursus ➔
-                   </Link>
+                   </button>
                 ) : (
                   <Link 
                     href={isLocked ? '/choose-plan' : (isPublic ? '/sign-in' : `/courses/material/${course.id}`)}
