@@ -8,9 +8,9 @@ type TestType = {
   id: number
   title: string
   description: string | null
-  durationMinutes: number
-  passingScore: number
-  showResults: boolean
+  durationMinutes: number | null
+  passingScore: number | null
+  showResults: boolean | null
   categoryId: number | null
 }
 
