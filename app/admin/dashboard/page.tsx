@@ -10,9 +10,12 @@ export default async function AdminDashboardPage() {
   const testsCountResult = await db.select({ count: count() }).from(tests).where(eq(tests.isPublished, true));
   const testsCount = testsCountResult[0].count;
   
-  const allResults = await db.select().from(results);
-  const totalAttempts = allResults.length;
-  const passedCount = allResults.filter(r => r.passed).length;
+  const allResultsCountData = await db.select({ count: count() }).from(results);
+  const totalAttempts = allResultsCountData[0].count;
+  
+  const passedResultsData = await db.select({ count: count() }).from(results).where(eq(results.passed, true));
+  const passedCount = passedResultsData[0].count;
+  
   const avgPassRate = totalAttempts > 0 ? ((passedCount / totalAttempts) * 100).toFixed(1) : '0.0';
 
   const recentUsers = await db.select().from(user).orderBy(desc(user.createdAt)).limit(3);

@@ -1,10 +1,12 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { LandingMobileMenu } from '@/components/layout/LandingMobileMenu'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { settings } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
+import { unstable_cache } from 'next/cache'
 
 const DEFAULT_LANDING_CONFIG = {
   hero: {
@@ -83,20 +85,28 @@ export default async function LandingPage() {
     redirect('/dashboard')
   }
 
-  let config = DEFAULT_LANDING_CONFIG
-  try {
-    const records = await db.select().from(settings).where(eq(settings.id, 'landing_page'))
-    if (records.length > 0) {
-      const dbConfig = JSON.parse(records[0].value)
-      config = { ...DEFAULT_LANDING_CONFIG, ...dbConfig }
-      // Merge missing defaults for older DB records
-      if (!dbConfig.featuresHeader) config.featuresHeader = DEFAULT_LANDING_CONFIG.featuresHeader
-      if (!dbConfig.features) config.features = DEFAULT_LANDING_CONFIG.features
-      if (!dbConfig.cta) config.cta = DEFAULT_LANDING_CONFIG.cta
-    }
-  } catch (err) {
-    console.error('Failed to parse landing config', err)
-  }
+  const getCachedConfig = unstable_cache(
+    async () => {
+      try {
+        const records = await db.select().from(settings).where(eq(settings.id, 'landing_page'))
+        if (records.length > 0) {
+          const dbConfig = JSON.parse(records[0].value)
+          const config = { ...DEFAULT_LANDING_CONFIG, ...dbConfig }
+          if (!dbConfig.featuresHeader) config.featuresHeader = DEFAULT_LANDING_CONFIG.featuresHeader
+          if (!dbConfig.features) config.features = DEFAULT_LANDING_CONFIG.features
+          if (!dbConfig.cta) config.cta = DEFAULT_LANDING_CONFIG.cta
+          return config
+        }
+      } catch (err) {
+        console.error('Failed to parse landing config', err)
+      }
+      return DEFAULT_LANDING_CONFIG
+    },
+    ['landing_page_config_v1'],
+    { revalidate: 60, tags: ['landing_page'] }
+  )
+
+  const config = await getCachedConfig()
 
   return (
     <>
@@ -200,8 +210,8 @@ export default async function LandingPage() {
                   </button>
                 </div>
                 {config.features[0].imageUrl && (
-                  <div className="absolute right-0 bottom-0 w-1/2 opacity-20 md:opacity-100 group-hover:scale-105 transition-transform duration-500">
-                    <img alt={config.features[0].title} className="w-full h-full object-cover rounded-tl-3xl" src={config.features[0].imageUrl}/>
+                  <div className="absolute right-0 bottom-0 w-1/2 h-full opacity-20 md:opacity-100 group-hover:scale-105 transition-transform duration-500 overflow-hidden">
+                    <Image alt={config.features[0].title} className="object-cover rounded-tl-3xl mt-12 ml-12" fill sizes="(max-width: 768px) 100vw, 50vw" src={config.features[0].imageUrl}/>
                   </div>
                 )}
               </div>
@@ -234,7 +244,9 @@ export default async function LandingPage() {
                 <h3 className="font-headline-sm text-headline-sm text-primary mb-3">{config.features[2].title}</h3>
                 <p className="text-on-surface-variant font-body-sm text-body-sm mb-6">{config.features[2].description}</p>
                 {config.features[2].imageUrl && (
-                  <img alt={config.features[2].title} className="rounded-lg shadow-sm border border-outline-variant opacity-80 group-hover:opacity-100 transition-opacity" src={config.features[2].imageUrl}/>
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden mt-4 opacity-80 group-hover:opacity-100 transition-opacity">
+                    <Image alt={config.features[2].title} className="object-cover shadow-sm border border-outline-variant" fill sizes="(max-width: 768px) 100vw, 33vw" src={config.features[2].imageUrl}/>
+                  </div>
                 )}
               </div>
 
@@ -258,7 +270,7 @@ export default async function LandingPage() {
                 {config.features[3].imageUrl && (
                   <div className="flex-1 flex items-center justify-center">
                     <div className="relative w-full aspect-video rounded-lg overflow-hidden shadow-md">
-                      <img alt={config.features[3].title} className="w-full h-full object-cover" src={config.features[3].imageUrl}/>
+                      <Image alt={config.features[3].title} className="object-cover" fill sizes="(max-width: 768px) 100vw, 50vw" src={config.features[3].imageUrl}/>
                       <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                         <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform">
                           <span className="material-symbols-outlined text-primary text-4xl">play_arrow</span>
@@ -288,7 +300,9 @@ export default async function LandingPage() {
                     </div>
                     <p className="italic text-on-surface-variant font-body-md text-body-md mb-8 flex-grow">"{testi.content}"</p>
                     <div className="flex items-center gap-4">
-                      <img alt={testi.name} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" src={testi.avatarUrl}/>
+                      <div className="w-12 h-12 relative flex-shrink-0">
+                        <Image alt={testi.name} fill className="rounded-full object-cover border-2 border-white shadow-sm" sizes="48px" src={testi.avatarUrl}/>
+                      </div>
                       <div>
                         <div className="font-bold text-primary text-body-md">{testi.name}</div>
                         <div className="text-on-surface-variant text-label-md uppercase">{testi.role}</div>
