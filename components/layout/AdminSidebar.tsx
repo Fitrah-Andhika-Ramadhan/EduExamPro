@@ -13,7 +13,9 @@ export function AdminSidebar() {
     { href: '/admin/users', icon: 'group', label: 'Manajemen Pengguna' },
     { href: '/admin/logs', icon: 'analytics', label: 'Laporan Institusi' },
     { href: '/admin/tests', icon: 'menu_book', label: 'Bank Soal' },
-    { href: '/admin/analytics/weakness', icon: 'calendar_today', label: 'Jadwal Ujian' }, // placeholder
+    { href: '/admin/courses', icon: 'library_books', label: 'Materi Silabus' },
+    { href: '/admin/schedule', icon: 'calendar_month', label: 'Jadwal Agenda' },
+    { href: '/admin/landing', icon: 'web', label: 'Atur Landing Page' },
     { href: '/admin/settings', icon: 'settings', label: 'Pengaturan Sistem' },
   ];
 

@@ -5,10 +5,7 @@ import { results, tests } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import Link from 'next/link'
 import SharedNavBar from '@/components/shared-navbar'
-import {
-  Trophy, Clock, Target, TrendingUp, PlayCircle,
-  ArrowRight, BarChart3, CheckCircle, XCircle, RotateCcw
-} from 'lucide-react'
+import { Trophy, Clock, Target, TrendingUp, ArrowRight, BarChart3, CheckCircle, RotateCcw, AlertTriangle, Medal } from 'lucide-react'
 
 export default async function ResultsPage() {
   const session = await auth()
@@ -44,6 +41,8 @@ export default async function ResultsPage() {
     ? Math.max(...userResults.map(r => parseFloat(r.percentage ?? '0'))).toFixed(1)
     : '0'
 
+  const passRate = totalAttempts > 0 ? ((passedCount / totalAttempts) * 100).toFixed(0) : '0'
+
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return '-'
     const m = Math.floor(seconds / 60)
@@ -60,128 +59,211 @@ export default async function ResultsPage() {
   }
 
   // @ts-ignore
-  const userRole = session.user.role
+  const userRole = session.user.role || 'user'
 
   return (
-    <div className="min-h-screen bg-canvas font-sans">
+    <div className="min-h-screen bg-gray-50 font-sans">
       <SharedNavBar email={userEmail} name={userName} role={userRole} currentPath="/results" />
 
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        <div className="mb-12">
-          <h1 className="display-xl text-ink mb-4">Riwayat & Analitik</h1>
-          <p className="body-lg text-ink-mute">Pantau perkembangan belajar dan analisis performa Anda secara berkala</p>
+      {/* Hero Section with Mesh Gradient */}
+      <div className="relative pt-12 pb-24 overflow-hidden" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)' }}>
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '30px 30px' }} />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-white/90 border border-white/20 mb-6 font-semibold text-sm backdrop-blur-md">
+            <Trophy className="w-4 h-4 text-amber-400" />
+            Laporan Evaluasi Prestasi
+          </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">Riwayat & Analitik Hasil</h1>
+          <p className="text-indigo-200 text-lg max-w-2xl mx-auto">Pantau jejak perkembangan Anda, kenali kelemahan, dan terus tingkatkan performa ujian dari waktu ke waktu.</p>
         </div>
+      </div>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 -mt-16 relative z-20 pb-20">
+
+        {/* Top Analytics Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
           {[
-            { icon: Target, label: 'Total Sesi', value: totalAttempts.toString(), color: 'text-primary' },
-            { icon: Trophy, label: 'Lulus', value: passedCount.toString(), color: 'text-semantic-success' },
-            { icon: TrendingUp, label: 'Rata-rata', value: `${avgScore}%`, color: 'text-link-blue' },
-            { icon: BarChart3, label: 'Skor Terbaik', value: `${bestScore}%`, color: 'text-[#cc4117]' },
+            { icon: Target, label: 'Total Sesi', value: totalAttempts.toString(), color: 'bg-blue-500', textCol: 'text-blue-500' },
+            { icon: CheckCircle, label: 'Lulus KKM', value: passedCount.toString(), color: 'bg-emerald-500', textCol: 'text-emerald-500' },
+            { icon: TrendingUp, label: 'Rata-rata Skor', value: `${avgScore}%`, color: 'bg-purple-500', textCol: 'text-purple-500' },
+            { icon: Medal, label: 'Skor Terbaik', value: `${bestScore}%`, color: 'bg-amber-500', textCol: 'text-amber-500' },
           ].map((stat, i) => (
-            <div key={i} className="card-stat border border-hairline hover:elev-1 transition-shadow">
-              <div className="w-12 h-12 rounded-lg bg-canvas-lavender flex items-center justify-center mb-6">
-                <stat.icon className={`w-6 h-6 ${stat.color}`} />
+            <div key={i} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-xl shadow-gray-200/40 relative overflow-hidden group">
+              <div className={`absolute top-0 right-0 w-24 h-24 ${stat.color} opacity-5 rounded-bl-full transition-transform group-hover:scale-110`} />
+              <div className={`w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center mb-4 border border-gray-100`}>
+                <stat.icon className={`w-6 h-6 ${stat.textCol}`} />
               </div>
-              <div className={`display-lg mb-2 ${stat.color}`}>{stat.value}</div>
-              <div className="body-strong text-ink-mute">{stat.label}</div>
+              <div className={`text-3xl font-black ${stat.textCol} mb-1`}>{stat.value}</div>
+              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{stat.label}</div>
             </div>
           ))}
         </div>
 
-        {/* Pass rate bar */}
+        {/* Graphics Section */}
         {totalAttempts > 0 && (
-          <div className="bg-canvas-cream rounded-xl border border-hairline p-8 mb-12 flex flex-col md:flex-row items-start md:items-center gap-8">
-            <div className="shrink-0">
-              <div className="heading-sm text-ink mb-2">Tingkat Kelulusan</div>
-              <div className="display-xl text-primary">
-                {((passedCount / totalAttempts) * 100).toFixed(0)}%
-              </div>
-            </div>
-            <div className="flex-1 w-full">
-              <div className="h-4 bg-canvas rounded-full overflow-hidden border border-hairline">
-                <div
-                  className="h-full bg-primary transition-all"
-                  style={{ width: `${(passedCount / totalAttempts) * 100}%` }}
-                />
-              </div>
-              <div className="flex justify-between body-md text-ink-mute mt-4">
-                <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-primary" />{passedCount} lulus</span>
-                <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-canvas border border-hairline" />{totalAttempts - passedCount} belum lulus</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Results list */}
-        {userResults.length === 0 ? (
-          <div className="text-center py-24 bg-canvas-lavender rounded-xl border border-hairline">
-            <Trophy className="w-16 h-16 text-primary mx-auto mb-6" />
-            <h3 className="heading-lg text-ink mb-3">Belum ada riwayat ujian</h3>
-            <p className="body-md text-ink-mute mb-8">Mulai kerjakan tryout untuk mengumpulkan data performa di sini</p>
-            <Link href="/tests" className="button-primary-pill">
-              Mulai Tryout Pertama <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {userResults.map((result) => {
-              const pct = parseFloat(result.percentage ?? '0')
-              const isPassed = result.passed
-              return (
-                <div
-                  key={result.id}
-                  className="bg-canvas rounded-xl border border-hairline p-6 hover:elev-1 transition-shadow flex flex-col md:flex-row items-start md:items-center gap-6"
-                >
-                  {/* Score Circle */}
-                  <div className={`w-20 h-20 rounded-full flex items-center justify-center shrink-0 border-2 ${isPassed ? 'border-semantic-success text-semantic-success bg-semantic-success/10' : 'border-semantic-error text-semantic-error bg-semantic-error/10'}`}>
-                    <span className="heading-lg leading-none">
-                      {pct.toFixed(0)}%
-                    </span>
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-4 mb-3 flex-wrap">
-                      <h3 className="heading-md text-ink">{result.testTitle ?? 'Tryout'}</h3>
-                      <span className={`pill-cap-shade !px-3 !py-1 ${isPassed ? 'bg-semantic-success/20 text-semantic-success' : 'bg-semantic-error/20 text-semantic-error'}`}>
-                        {isPassed ? 'Lulus Passing Grade' : 'Belum Lulus'}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-x-6 gap-y-2 body-md text-ink-mute">
-                      <span className="flex items-center gap-2"><Clock className="w-4 h-4" />{formatDuration(result.durationSeconds)}</span>
-                      <span className="flex items-center gap-2"><Target className="w-4 h-4" />KKM: {result.passingScore}</span>
-                      <span>{formatDate(result.completedAt)}</span>
-                    </div>
-                  </div>
-
-                  {/* Score bar */}
-                  <div className="hidden lg:block w-48">
-                    <div className="flex justify-between caption mb-2">
-                      <span className="text-ink-mute">Skor</span>
-                      <span className="font-bold text-ink">{pct.toFixed(1)}%</span>
-                    </div>
-                    <div className="h-3 bg-canvas-cream rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${isPassed ? 'bg-semantic-success' : 'bg-semantic-error'}`}
-                        style={{ width: `${Math.min(pct, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Retry button */}
-                  <Link
-                    href={`/tests/${result.testId}/take`}
-                    className="button-outline-aubergine shrink-0 mt-4 md:mt-0"
-                  >
-                    <RotateCcw className="w-4 h-4 mr-2" /> Ulangi
-                  </Link>
+          <div className="grid lg:grid-cols-3 gap-6 mb-10">
+            {/* Pass Rate Chart */}
+            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-xl shadow-gray-200/40 lg:col-span-1 flex flex-col items-center justify-center text-center">
+              <h3 className="font-bold text-gray-900 mb-6 w-full text-left">Tingkat Kelulusan</h3>
+              
+              {/* CSS Circular Progress */}
+              <div className="relative w-40 h-40 flex items-center justify-center rounded-full" 
+                   style={{ background: `conic-gradient(#10b981 ${passRate}%, #f3f4f6 ${passRate}% 100%)` }}>
+                <div className="absolute inset-2 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
+                  <span className="text-4xl font-black text-emerald-600">{passRate}%</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase mt-1">Success</span>
                 </div>
-              )
-            })}
+              </div>
+
+              <div className="mt-8 flex justify-between w-full text-sm font-semibold">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <div className="w-3 h-3 rounded-full bg-emerald-500" /> {passedCount} Lulus
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <div className="w-3 h-3 rounded-full bg-gray-200" /> {totalAttempts - passedCount} Gagal
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Trend Bar Chart */}
+            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-xl shadow-gray-200/40 lg:col-span-2 flex flex-col">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold text-gray-900">Trend Skor 7 Sesi Terakhir</h3>
+                <Link href="/ai-analytics" className="text-sm font-bold text-indigo-600 hover:underline flex items-center gap-1">
+                  Lihat AI Analytics <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              <div className="flex-1 flex items-end gap-2 sm:gap-4 h-48 pt-4">
+                {userResults.slice(0, 7).reverse().map((res, i) => {
+                  const val = parseFloat(res.percentage ?? '0')
+                  const isHigh = val >= 70
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-2 group relative">
+                      {/* Tooltip */}
+                      <div className="absolute -top-10 bg-gray-900 text-white text-xs font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                        {val}% - {res.passed ? 'Lulus' : 'Gagal'}
+                      </div>
+                      
+                      {/* Bar */}
+                      <div className="w-full relative h-full bg-gray-50 rounded-t-lg overflow-hidden flex items-end">
+                        <div 
+                          className={`w-full rounded-t-lg transition-all duration-1000 ${isHigh ? 'bg-indigo-500 group-hover:bg-indigo-400' : 'bg-rose-400 group-hover:bg-rose-300'}`}
+                          style={{ height: `${val}%` }}
+                        />
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold text-gray-400 truncate w-full text-center">T{i+1}</div>
+                    </div>
+                  )
+                })}
+                {/* Fill empty if < 7 */}
+                {Array.from({ length: Math.max(0, 7 - userResults.length) }).map((_, i) => (
+                  <div key={`empty-${i}`} className="flex-1 h-full bg-gray-50/50 border border-dashed border-gray-200 rounded-t-lg flex items-center justify-center">
+                    <span className="text-gray-300 text-xs font-semibold">-</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
+
+        {/* Detailed Results List */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/40 overflow-hidden">
+          <div className="p-6 md:p-8 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-xl font-bold text-gray-900">Histori Rinci</h2>
+          </div>
+
+          {userResults.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
+                <BarChart3 className="w-10 h-10 text-gray-300" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Belum ada riwayat ujian</h3>
+              <p className="text-gray-500 mb-6 max-w-sm mx-auto">Selesaikan Tryout pertama Anda untuk melihat histori dan analitik performa di sini.</p>
+              <Link href="/tests" className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors">
+                Mulai Tryout <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {userResults.map((result) => {
+                const pct = parseFloat(result.percentage ?? '0')
+                const isPassed = result.passed
+
+                return (
+                  <div key={result.id} className="p-6 md:p-8 hover:bg-gray-50/80 transition-colors flex flex-col md:flex-row items-start md:items-center gap-6">
+                    
+                    {/* Score Badge */}
+                    <div className="shrink-0 relative">
+                      <svg className="w-20 h-20 transform -rotate-90">
+                        <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-gray-100" />
+                        <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" 
+                                strokeDasharray={226} strokeDashoffset={226 - (226 * pct) / 100} 
+                                className={`transition-all duration-1000 ease-out ${isPassed ? 'text-emerald-500' : 'text-rose-500'}`} />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center font-black text-lg text-gray-900">
+                        {pct.toFixed(0)}%
+                      </div>
+                    </div>
+
+                    {/* Details */}
+                    <div className="flex-1 min-w-0 w-full">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
+                        <h3 className="text-lg font-bold text-gray-900 truncate">{result.testTitle ?? 'Tryout Tanpa Judul'}</h3>
+                        <span className={`text-[10px] uppercase tracking-wider font-black px-2.5 py-1 rounded-md ${isPassed ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                          {isPassed ? 'LULUS KKM' : 'TIDAK LULUS'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-x-6 gap-y-3 mt-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                            <Clock className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-400 uppercase">Waktu</div>
+                            {formatDuration(result.durationSeconds)}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                          <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 shrink-0">
+                            <Target className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-400 uppercase">KKM Target</div>
+                            {result.passingScore} Point
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-sm text-gray-600 font-medium md:ml-auto">
+                          <div className="text-right">
+                            <div className="text-xs text-gray-400 uppercase">Selesai pada</div>
+                            {formatDate(result.completedAt)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action */}
+                    <div className="shrink-0 w-full md:w-auto mt-2 md:mt-0">
+                      <Link
+                        href={`/tests/${result.testId}/take`}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:border-indigo-500 hover:text-indigo-600 transition-colors shadow-sm"
+                      >
+                        <RotateCcw className="w-4 h-4" /> Ulangi Test
+                      </Link>
+                    </div>
+
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
       </main>
     </div>
   )

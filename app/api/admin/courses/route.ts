@@ -1,0 +1,83 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { settings } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
+
+export const dynamic = 'force-dynamic'
+
+const DEFAULT_COURSES = [
+  {
+    id: 1,
+    title: 'Materi TWK (Tes Wawasan Kebangsaan)',
+    progress: 40,
+    topics: [
+      { title: 'Pancasila & Pengamalannya', type: 'video', isCompleted: true, isPremium: false },
+      { title: 'UUD 1945 & Amandemen', type: 'document', isCompleted: true, isPremium: false },
+      { title: 'Sejarah Perjuangan Bangsa', type: 'video', isCompleted: false, isPremium: true },
+      { title: 'Sistem Tata Negara Indonesia', type: 'quiz', isCompleted: false, isPremium: true }
+    ]
+  },
+  {
+    id: 2,
+    title: 'Materi TIU (Tes Intelegensia Umum)',
+    progress: 15,
+    topics: [
+      { title: 'Kemampuan Verbal (Analogi, Silogisme)', type: 'video', isCompleted: true, isPremium: false },
+      { title: 'Kemampuan Numerik Dasar', type: 'document', isCompleted: false, isPremium: false },
+      { title: 'Deret Angka & Huruf Cepat', type: 'video', isCompleted: false, isPremium: true },
+      { title: 'Trik Cepat Soal Cerita', type: 'video', isCompleted: false, isPremium: true }
+    ]
+  },
+  {
+    id: 3,
+    title: 'Materi TKP (Tes Karakteristik Pribadi)',
+    progress: 0,
+    topics: [
+      { title: 'Pelayanan Publik & Jejaring Kerja', type: 'video', isCompleted: false, isPremium: false },
+      { title: 'Sosial Budaya & TIK', type: 'document', isCompleted: false, isPremium: true },
+      { title: 'Profesionalisme & Anti Radikalisme', type: 'video', isCompleted: false, isPremium: true }
+    ]
+  }
+]
+
+export async function GET() {
+  try {
+    const records = await db.select().from(settings).where(eq(settings.id, 'courses_config'))
+    if (records.length === 0) {
+      return NextResponse.json({ success: true, data: DEFAULT_COURSES })
+    }
+    return NextResponse.json({ success: true, data: JSON.parse(records[0].value) })
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 })
+  }
+}
+
+export async function POST(req: NextRequest) {
+  const session = await auth()
+  // @ts-ignore
+  if (!session?.user?.id || session.user.role !== 'admin') {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const body = await req.json()
+    const valueStr = JSON.stringify(body)
+
+    const existing = await db.select().from(settings).where(eq(settings.id, 'courses_config'))
+    if (existing.length === 0) {
+      await db.insert(settings).values({
+        id: 'courses_config',
+        value: valueStr,
+      })
+    } else {
+      await db.update(settings)
+        .set({ value: valueStr, updatedAt: new Date() })
+        .where(eq(settings.id, 'courses_config'))
+    }
+
+    return NextResponse.json({ success: true, message: 'Courses updated successfully' })
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 })
+  }
+}

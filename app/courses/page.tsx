@@ -2,7 +2,23 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import SharedNavBar from '@/components/shared-navbar'
 import Link from 'next/link'
-import { BookOpen, Video, FileText, CheckCircle, Lock, PlayCircle, ChevronRight, LockIcon } from 'lucide-react'
+import { BookOpen, Video, FileText, CheckCircle, PlayCircle, ChevronRight, LockIcon } from 'lucide-react'
+import { db } from '@/lib/db'
+import { settings } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
+
+export const dynamic = 'force-dynamic'
+
+const DEFAULT_COURSES = [
+  {
+    id: 1,
+    title: 'Materi Dasar (Belum Dikonfigurasi Admin)',
+    progress: 0,
+    topics: [
+      { title: 'Topik 1', type: 'video', isCompleted: false, isPremium: false }
+    ]
+  }
+]
 
 export default async function CoursesPage() {
   const session = await auth()
@@ -14,43 +30,18 @@ export default async function CoursesPage() {
   // @ts-ignore
   const userRole = session.user.role || 'user'
 
-  const syllabus = [
-    {
-      id: 1,
-      title: 'Materi TWK (Tes Wawasan Kebangsaan)',
-      progress: 40,
-      topics: [
-        { title: 'Pancasila & Pengamalannya', type: 'video', isCompleted: true, isPremium: false },
-        { title: 'UUD 1945 & Amandemen', type: 'document', isCompleted: true, isPremium: false },
-        { title: 'Sejarah Perjuangan Bangsa', type: 'video', isCompleted: false, isPremium: true },
-        { title: 'Sistem Tata Negara Indonesia', type: 'quiz', isCompleted: false, isPremium: true }
-      ]
-    },
-    {
-      id: 2,
-      title: 'Materi TIU (Tes Intelegensia Umum)',
-      progress: 15,
-      topics: [
-        { title: 'Kemampuan Verbal (Analogi, Silogisme)', type: 'video', isCompleted: true, isPremium: false },
-        { title: 'Kemampuan Numerik Dasar', type: 'document', isCompleted: false, isPremium: false },
-        { title: 'Deret Angka & Huruf Cepat', type: 'video', isCompleted: false, isPremium: true },
-        { title: 'Trik Cepat Soal Cerita', type: 'video', isCompleted: false, isPremium: true }
-      ]
-    },
-    {
-      id: 3,
-      title: 'Materi TKP (Tes Karakteristik Pribadi)',
-      progress: 0,
-      topics: [
-        { title: 'Pelayanan Publik & Jejaring Kerja', type: 'video', isCompleted: false, isPremium: false },
-        { title: 'Sosial Budaya & TIK', type: 'document', isCompleted: false, isPremium: true },
-        { title: 'Profesionalisme & Anti Radikalisme', type: 'video', isCompleted: false, isPremium: true }
-      ]
+  let syllabus = DEFAULT_COURSES
+  try {
+    const records = await db.select().from(settings).where(eq(settings.id, 'courses_config'))
+    if (records.length > 0) {
+      syllabus = JSON.parse(records[0].value)
     }
-  ]
+  } catch (err) {
+    console.error('Failed to load courses', err)
+  }
 
   return (
-    <div className="min-h-screen bg-canvas font-sans flex flex-col">
+    <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
       <SharedNavBar email={session.user.email!} name={userName} role={userRole} currentPath="/courses" />
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-10">
@@ -60,33 +51,33 @@ export default async function CoursesPage() {
         </div>
 
         <div className="space-y-8">
-          {syllabus.map((section) => (
+          {syllabus.map((section: any) => (
             <div key={section.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+              <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-white">
                 <div>
                   <h2 className="text-lg font-bold text-gray-900 mb-1">{section.title}</h2>
                   <div className="flex items-center gap-3">
                     <div className="text-sm font-semibold text-gray-500">{section.progress}% Selesai</div>
-                    <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-purple-600 rounded-full" style={{ width: `${section.progress}%` }} />
+                    <div className="w-48 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${section.progress}%` }} />
                     </div>
                   </div>
                 </div>
-                <BookOpen className="w-8 h-8 text-purple-200" />
+                <BookOpen className="w-8 h-8 text-indigo-100" />
               </div>
               
-              <div className="divide-y divide-gray-50">
-                {section.topics.map((topic, idx) => {
-                  const locked = topic.isPremium && userPlan === 'free'
+              <div className="divide-y divide-gray-50 bg-gray-50/30">
+                {section.topics.map((topic: any, idx: number) => {
+                  const locked = topic.isPremium && userPlan === 'free' && userRole !== 'admin'
                   return (
-                    <div key={idx} className={`p-4 sm:px-6 flex items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer ${locked ? 'opacity-70' : ''}`}>
+                    <div key={idx} className={`p-4 sm:px-6 flex items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer ${locked ? 'opacity-60' : ''}`}>
                       <div className="shrink-0">
                         {topic.isCompleted ? (
-                          <CheckCircle className="w-6 h-6 text-green-500" />
+                          <CheckCircle className="w-6 h-6 text-emerald-500" />
                         ) : topic.type === 'video' ? (
-                          <PlayCircle className="w-6 h-6 text-gray-300" />
+                          <PlayCircle className="w-6 h-6 text-indigo-300" />
                         ) : (
-                          <FileText className="w-6 h-6 text-gray-300" />
+                          <FileText className="w-6 h-6 text-indigo-300" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -98,9 +89,11 @@ export default async function CoursesPage() {
                       </div>
                       <div className="shrink-0">
                         {locked ? (
-                          <LockIcon className="w-5 h-5 text-gray-300" />
+                          <div className="flex items-center gap-2 text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg">
+                            <LockIcon className="w-3.5 h-3.5" /> Terkunci
+                          </div>
                         ) : (
-                          <ChevronRight className="w-5 h-5 text-gray-400" />
+                          <ChevronRight className="w-5 h-5 text-gray-300" />
                         )}
                       </div>
                     </div>
@@ -109,15 +102,24 @@ export default async function CoursesPage() {
               </div>
             </div>
           ))}
+
+          {syllabus.length === 0 && (
+            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
+              <BookOpen className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Belum ada materi</h3>
+              <p className="text-gray-500">Admin belum menambahkan silabus pembelajaran.</p>
+            </div>
+          )}
         </div>
 
-        {userPlan === 'free' && (
-          <div className="mt-10 bg-purple-600 rounded-2xl p-8 text-center text-white shadow-xl">
-            <h3 className="text-xl font-bold mb-2">Buka Semua Materi & Fitur</h3>
-            <p className="text-purple-100 mb-6 max-w-lg mx-auto text-sm">
+        {userPlan === 'free' && userRole !== 'admin' && (
+          <div className="mt-10 bg-indigo-600 rounded-2xl p-8 text-center text-white shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <h3 className="text-xl font-bold mb-2 relative z-10">Buka Semua Materi & Fitur</h3>
+            <p className="text-indigo-100 mb-6 max-w-lg mx-auto text-sm relative z-10">
               Tingkatkan ke Paket Pro untuk membuka seluruh video pembelajaran, bank soal lengkap, dan modul PDF premium.
             </p>
-            <Link href="/choose-plan" className="inline-flex items-center gap-2 bg-white text-purple-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors">
+            <Link href="/choose-plan" className="inline-flex items-center gap-2 bg-white text-indigo-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors relative z-10">
               Upgrade ke Pro Sekarang
             </Link>
           </div>

@@ -1,8 +1,44 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { LandingMobileMenu } from '@/components/layout/LandingMobileMenu'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { db } from '@/lib/db'
+import { settings } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
+
+const DEFAULT_LANDING_CONFIG = {
+  hero: {
+    badge: "Platform Edukasi Terpercaya",
+    title: "Ekosistem Digital Pembelajaran & Ujian Terpadu #1 di Indonesia",
+    subtitle: "Satu platform untuk semua kebutuhan akademik dan karir Anda. Dari persiapan ujian hingga manajemen pembelajaran institusi dengan teknologi AI terkini."
+  },
+  stats: [
+    { value: "5jt+", label: "Peserta Terdaftar" },
+    { value: "500+", label: "Mitra Institusi" },
+    { value: "98%", label: "Tingkat Kepuasan" },
+    { value: "10k+", label: "Bank Soal Terverifikasi" }
+  ],
+  testimonials: [
+    {
+      name: "Andri Wijaya",
+      role: "Lulus CPNS 2023",
+      content: "EduExam Pro sangat membantu saya dalam persiapan CPNS. Fitur simulasi CAT-nya benar-benar mirip dengan aslinya, membuat saya tidak grogi saat ujian yang sebenarnya.",
+      avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCRh3OTV1mi5Kl752mlmcjjhQZamogQfk3F_T7rN3aDCKW1KinC8a2bzvrgaoB4KVcV_GRrPx4F_3TMMWj9sOJZZVPpyhJjLOAK3t9HVHejcmw7apVInleV9W4Edr0ZPxEzVBKMqMqzPVfn3mmf2Fc1Nq8VJY4ydbMIWc7HmVZB1_bQPxJiaGCH2ABtHBalruvMiJ6Psd_9ctYmRR0zkfEbQiRbJPExWcyQi1yqyRy9JODMMy9XdP0ZAkJbKnfnDAgE4fRBArecYlFz"
+    },
+    {
+      name: "Siti Aminah",
+      role: "Mahasiswa Kedokteran UI",
+      content: "Analisis IRT di platform ini memberikan gambaran akurat mengenai posisi saya dibanding peserta lain. Materi AI Adaptive Learning membantu saya fokus di bagian yang saya lemah.",
+      avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBEwN8z63HONqhM61hcdc2m8nJGWDKBTWcNPW-aAEdNmP-fYMOeOUiV86RJ8TV9zhO8EKWw2dTTeAsw4u63zOZx1olTtigOdHY9hmjF0-nBWXpI3bS6oqSVZb1w304PzdTZvCA_viogB8FvAvNbnLpc1EZ8gDW81s1giUmgJldfq-DS5aHMZW5Xge2-fma8ucwuuKxwdUO9dhdu9P-usyGHcAMW5owxa9VUft6-malPsSclj-lRYe8cVQQJz5rGi3Jl59W9TL0aEJfO"
+    },
+    {
+      name: "Bpk. Darmanto",
+      role: "Kepala Sekolah SMA 1",
+      content: "Sistem LMS untuk sekolah kami sangat stabil dan mudah digunakan. Guru-guru merasa terbantu dengan otomatisasi penilaian dan bank soal yang melimpah.",
+      avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDTOJdBne5L8ckVPyI-iGTW7q3J6inYFUHjW-mnQ1ZrApij4GReB9weJUWMLvCvJtxWPbR-fXLlveHZipzb5aMvhVk0P1VZl9Zb14yVJWSCDBIkBdQwuKfVGnsjuerpcqZqN23QXovlNu7x7nOG06xn6bXAdvJQmhl6ohg-uIJYak1vXNC5Hll3NhRA-Ce9y7sJ47E9ZT24WMB2pm2TEa4kw0Mwrb8la718taQY9PU6xPejKLow9gEvRrqSk9aJvPAwoPraPI254DpF"
+    }
+  ]
+}
 
 export default async function LandingPage() {
   const session = await auth()
@@ -13,6 +49,16 @@ export default async function LandingPage() {
     // @ts-ignore
     if (session.user.role === 'instructor') redirect('/instructor/dashboard')
     redirect('/dashboard')
+  }
+
+  let config = DEFAULT_LANDING_CONFIG
+  try {
+    const records = await db.select().from(settings).where(eq(settings.id, 'landing_page'))
+    if (records.length > 0) {
+      config = JSON.parse(records[0].value)
+    }
+  } catch (err) {
+    console.error('Failed to parse landing config', err)
   }
 
   return (
@@ -56,13 +102,13 @@ export default async function LandingPage() {
             <div className="relative z-10 max-w-container-max mx-auto px-margin-desktop flex flex-col items-center text-center">
               <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-primary-container text-on-primary-container mb-6 border border-on-primary-container/20">
                 <span className="material-symbols-outlined text-sm">stars</span>
-                <span className="font-label-md text-label-md uppercase tracking-wider">Platform Edukasi Terpercaya</span>
+                <span className="font-label-md text-label-md uppercase tracking-wider">{config.hero.badge}</span>
               </div>
               <h1 className="font-display-lg text-display-lg text-white mb-6 max-w-4xl leading-tight">
-                Ekosistem Digital Pembelajaran & <span className="text-secondary-container">Ujian Terpadu</span> #1 di Indonesia
+                {config.hero.title}
               </h1>
               <p className="text-on-primary-container font-body-lg text-body-lg max-w-2xl mb-10 opacity-90">
-                Satu platform untuk semua kebutuhan akademik dan karir Anda. Dari persiapan ujian hingga manajemen pembelajaran institusi dengan teknologi AI terkini.
+                {config.hero.subtitle}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/sign-up" className="bg-secondary-container text-on-secondary-container px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-primary transition-all shadow-xl flex items-center justify-center gap-2">
@@ -76,22 +122,12 @@ export default async function LandingPage() {
 
               {/* Stats Preview */}
               <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-5xl">
-                <div className="text-center">
-                  <div className="text-white font-headline-lg text-headline-lg mb-1">5jt+</div>
-                  <div className="text-on-primary-container font-label-md text-label-md uppercase">Peserta Terdaftar</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-white font-headline-lg text-headline-lg mb-1">500+</div>
-                  <div className="text-on-primary-container font-label-md text-label-md uppercase">Mitra Institusi</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-white font-headline-lg text-headline-lg mb-1">98%</div>
-                  <div className="text-on-primary-container font-label-md text-label-md uppercase">Tingkat Kepuasan</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-white font-headline-lg text-headline-lg mb-1">10k+</div>
-                  <div className="text-on-primary-container font-label-md text-label-md uppercase">Bank Soal Terverifikasi</div>
-                </div>
+                {config.stats.map((stat, i) => (
+                  <div key={i} className="text-center">
+                    <div className="text-white font-headline-lg text-headline-lg mb-1">{stat.value}</div>
+                    <div className="text-on-primary-container font-label-md text-label-md uppercase">{stat.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </section>
@@ -199,62 +235,23 @@ export default async function LandingPage() {
                 <h2 className="font-headline-lg text-headline-lg text-primary">Kisah Sukses Bersama Kami</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Testimonial 1 */}
-                <div className="glass-card p-8 rounded-xl flex flex-col">
-                  <div className="flex text-warning-orange mb-4">
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                  </div>
-                  <p className="italic text-on-surface-variant font-body-md text-body-md mb-8 flex-grow">"EduExam Pro sangat membantu saya dalam persiapan CPNS. Fitur simulasi CAT-nya benar-benar mirip dengan aslinya, membuat saya tidak grogi saat ujian yang sebenarnya."</p>
-                  <div className="flex items-center gap-4">
-                    <img alt="Avatar" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8b81Br8sWn52VjfKYZ-7v21kbT-r8BsSLUGyIZHvaVp2ipQpCQ7HUzFL9Ihh4pQoVLPE8s-T1lrFvYTWM8DaY52XIsAlh9cc9y7IEmMnN03Hd95OEcjTPJboYOzmf5zCPuCyj2ooFXjwt3aytpMn2nzD_RSFtpltOJQYJCFyym4HqYwUvYDavsz97Fm_hZZ35p9AvbDd0NdudtV8BW_tqjhQYnqc-Qf7uH0a6gNAHvHb_PLH5D8z0HhxRNsVQY3UAFAtkxfdI7m4g"/>
-                    <div>
-                      <div className="font-bold text-primary text-body-md">Andri Wijaya</div>
-                      <div className="text-on-surface-variant text-label-md uppercase">Lulus CPNS 2023</div>
+                {config.testimonials.map((testi, i) => (
+                  <div key={i} className="glass-card p-8 rounded-xl flex flex-col">
+                    <div className="flex text-warning-orange mb-4">
+                      {[...Array(5)].map((_, idx) => (
+                        <span key={idx} className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                      ))}
+                    </div>
+                    <p className="italic text-on-surface-variant font-body-md text-body-md mb-8 flex-grow">"{testi.content}"</p>
+                    <div className="flex items-center gap-4">
+                      <img alt={testi.name} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" src={testi.avatarUrl}/>
+                      <div>
+                        <div className="font-bold text-primary text-body-md">{testi.name}</div>
+                        <div className="text-on-surface-variant text-label-md uppercase">{testi.role}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                {/* Testimonial 2 */}
-                <div className="glass-card p-8 rounded-xl flex flex-col">
-                  <div className="flex text-warning-orange mb-4">
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                  </div>
-                  <p className="italic text-on-surface-variant font-body-md text-body-md mb-8 flex-grow">"Analisis IRT di platform ini memberikan gambaran akurat mengenai posisi saya dibanding peserta lain. Materi AI Adaptive Learning membantu saya fokus di bagian yang saya lemah."</p>
-                  <div className="flex items-center gap-4">
-                    <img alt="Avatar" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEwN8z63HONqhM61hcdc2m8nJGWDKBTWcNPW-aAEdNmP-fYMOeOUiV86RJ8TV9zhO8EKWw2dTTeAsw4u63zOZx1olTtigOdHY9hmjF0-nBWXpI3bS6oqSVZb1w304PzdTZvCA_viogB8FvAvNbnLpc1EZ8gDW81s1giUmgJldfq-DS5aHMZW5Xge2-fma8ucwuuKxwdUO9dhdu9P-usyGHcAMW5owxa9VUft6-malPsSclj-lRYe8cVQQJz5rGi3Jl59W9TL0aEJfO"/>
-                    <div>
-                      <div className="font-bold text-primary text-body-md">Siti Aminah</div>
-                      <div className="text-on-surface-variant text-label-md uppercase">Mahasiswa Kedokteran UI</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Testimonial 3 */}
-                <div className="glass-card p-8 rounded-xl flex flex-col">
-                  <div className="flex text-warning-orange mb-4">
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                    <span className="material-symbols-outlined fill-current" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                  </div>
-                  <p className="italic text-on-surface-variant font-body-md text-body-md mb-8 flex-grow">"Sistem LMS untuk sekolah kami sangat stabil dan mudah digunakan. Guru-guru merasa terbantu dengan otomatisasi penilaian dan bank soal yang melimpah."</p>
-                  <div className="flex items-center gap-4">
-                    <img alt="Avatar" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTOJdBne5L8ckVPyI-iGTW7q3J6inYFUHjW-mnQ1ZrApij4GReB9weJUWMLvCvJtxWPbR-fXLlveHZipzb5aMvhVk0P1VZl9Zb14yVJWSCDBIkBdQwuKfVGnsjuerpcqZqN23QXovlNu7x7nOG06xn6bXAdvJQmhl6ohg-uIJYak1vXNC5Hll3NhRA-Ce9y7sJ47E9ZT24WMB2pm2TEa4kw0Mwrb8la718taQY9PU6xPejKLow9gEvRrqSk9aJvPAwoPraPI254DpF"/>
-                    <div>
-                      <div className="font-bold text-primary text-body-md">Bpk. Darmanto</div>
-                      <div className="text-on-surface-variant text-label-md uppercase">Kepala Sekolah SMA 1</div>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </section>
