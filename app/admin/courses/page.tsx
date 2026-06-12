@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import CoursesControlClient from '../../components/admin/courses-control-client'
+import CoursesControlClient from '../../../components/admin/courses-control-client'
 
 
 
