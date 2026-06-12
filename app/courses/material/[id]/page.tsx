@@ -5,9 +5,12 @@ import { ArrowLeft, BookOpen, FileText, CheckCircle2, Download } from 'lucide-re
 
 export const dynamic = 'force-dynamic'
 
-export default async function MaterialPage({ params }: { params: { id: string } }) {
+export default async function MaterialPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user?.id) redirect('/sign-in')
+  
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">

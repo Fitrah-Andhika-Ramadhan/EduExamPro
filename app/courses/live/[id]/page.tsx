@@ -8,11 +8,12 @@ import { eq } from 'drizzle-orm'
 
 export const dynamic = 'force-dynamic'
 
-export default async function MentoringLivePage({ params }: { params: { id: string } }) {
+export default async function MentoringLivePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user?.id) redirect('/sign-in')
   
-  const [courseIdStr, topicIdxStr] = params.id.split('-')
+  const resolvedParams = await params;
+  const [courseIdStr, topicIdxStr] = resolvedParams.id.split('-')
   const courseId = parseInt(courseIdStr)
   const topicIdx = parseInt(topicIdxStr)
 

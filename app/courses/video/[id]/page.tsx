@@ -15,12 +15,13 @@ function getYoutubeId(url: string) {
   return (match && match[2].length === 11) ? match[2] : null;
 }
 
-export default async function VideoCoursePage({ params }: { params: { id: string } }) {
+export default async function VideoCoursePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user?.id) redirect('/sign-in')
 
+  const resolvedParams = await params;
   // Parse id: "courseId-topicIdx"
-  const [courseIdStr, topicIdxStr] = params.id.split('-')
+  const [courseIdStr, topicIdxStr] = resolvedParams.id.split('-')
   const courseId = parseInt(courseIdStr)
   const topicIdx = parseInt(topicIdxStr)
 

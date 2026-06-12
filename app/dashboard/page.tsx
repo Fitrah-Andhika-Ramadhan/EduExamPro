@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { tests, results } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import UserTopbar from '@/components/layout/UserTopbar';
+import StudentLayout from '@/components/layout/student-layout';
 import Link from 'next/link';
 
 export default async function UserDashboardPage() {
@@ -21,9 +21,8 @@ export default async function UserDashboardPage() {
     : '0';
 
   return (
-    <>
-      <UserTopbar name={userName} />
-      <div className="p-margin-desktop space-y-gutter">
+    <StudentLayout activePath="/dashboard">
+      <div className="p-4 md:p-8 space-y-8">
         {/* Hero Performance Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter">
           <div className="md:col-span-3 bg-primary-container text-on-primary rounded-xl p-stack-lg flex flex-col justify-center relative overflow-hidden shadow-sm">
@@ -192,6 +191,6 @@ export default async function UserDashboardPage() {
           </div>
         </footer>
       </div>
-    </>
+    </StudentLayout>
   );
 }

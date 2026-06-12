@@ -4,8 +4,10 @@ import { db } from '@/lib/db'
 import { results, tests } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import Link from 'next/link'
-import SharedNavBar from '@/components/shared-navbar'
+import StudentLayout from '@/components/layout/student-layout'
 import { Trophy, Clock, Target, TrendingUp, ArrowRight, BarChart3, CheckCircle, RotateCcw, AlertTriangle, Medal } from 'lucide-react'
+
+export const dynamic = 'force-dynamic'
 
 export default async function ResultsPage() {
   const session = await auth()
@@ -62,8 +64,7 @@ export default async function ResultsPage() {
   const userRole = session.user.role || 'user'
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <SharedNavBar email={userEmail} name={userName} role={userRole} currentPath="/results" />
+    <StudentLayout activePath="/results">
 
       {/* Hero Section with Mesh Gradient */}
       <div className="relative pt-12 pb-24 overflow-hidden" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)' }}>
@@ -265,6 +266,6 @@ export default async function ResultsPage() {
         </div>
 
       </main>
-    </div>
+    </StudentLayout>
   )
 }

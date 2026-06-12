@@ -20,6 +20,8 @@ const DEFAULT_SCHEDULE = [
   }
 ]
 
+import StudentLayout from '@/components/layout/student-layout'
+
 export default async function SchedulePage() {
   const session = await auth()
   if (!session?.user?.id) redirect('/sign-in')
@@ -39,10 +41,8 @@ export default async function SchedulePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
-      <SharedNavBar email={session.user.email!} name={userName} role={userRole} currentPath="/schedule" />
-
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-10">
+    <StudentLayout activePath="/schedule">
+      <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 py-10">
         <div className="flex items-center gap-4 mb-10">
           <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center">
             <Calendar className="w-7 h-7 text-indigo-600" />
@@ -119,7 +119,7 @@ export default async function SchedulePage() {
            </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </StudentLayout>
   )
 }

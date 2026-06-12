@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import SharedNavBar from '@/components/shared-navbar'
+import StudentLayout from '@/components/layout/student-layout'
 import Link from 'next/link'
 import { BookOpen, Video, FileText, CheckCircle, PlayCircle, ChevronRight, LockIcon } from 'lucide-react'
 import { db } from '@/lib/db'
@@ -41,10 +41,8 @@ export default async function CoursesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
-      <SharedNavBar email={session.user.email!} name={userName} role={userRole} currentPath="/courses" />
-
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-10">
+    <StudentLayout activePath="/courses">
+      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-10">
         <div className="mb-10">
           <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Silabus Pembelajaran</h1>
           <p className="text-gray-500">Materi terstruktur untuk membantu persiapan tes Anda dari nol sampai mahir.</p>
@@ -138,7 +136,7 @@ export default async function CoursesPage() {
             </Link>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </StudentLayout>
   )
 }

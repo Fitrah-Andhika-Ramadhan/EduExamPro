@@ -8,12 +8,13 @@ import { ArrowLeft, Trash2, Plus, Edit2, CheckCircle2 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
-export default async function TestEditorPage({ params }: { params: { id: string } }) {
+export default async function TestEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   // @ts-ignore
   if (!session?.user || session.user.role !== 'admin') redirect('/admin-login')
 
-  const testId = parseInt(params.id)
+  const resolvedParams = await params;
+  const testId = parseInt(resolvedParams.id)
   
   // Get test details
   const testData = await db.select().from(tests).where(eq(tests.id, testId))

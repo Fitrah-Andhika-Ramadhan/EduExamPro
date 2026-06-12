@@ -2,9 +2,9 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { tests, results } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 import Link from 'next/link'
-import SharedNavBar from '@/components/shared-navbar'
+import StudentLayout from '@/components/layout/student-layout'
 import { BookOpen, Timer, Target, Lock, ChevronRight, LayoutList, Trophy, CheckCircle2 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -34,6 +34,7 @@ export default async function TestsPage() {
     })
     .from(tests)
     .where(eq(tests.isPublished, true))
+    .orderBy(desc(tests.createdAt))
 
   const userResults = await db
     .select({ testId: results.testId, percentage: results.percentage, passed: results.passed })
@@ -162,8 +163,7 @@ export default async function TestsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <SharedNavBar email={userEmail} name={userName} role={userRole} currentPath="/tests" />
+    <StudentLayout activePath="/tests">
 
       {/* Hero Section with Mesh Gradient */}
       <div className="relative pt-12 pb-24 overflow-hidden" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)' }}>
@@ -217,6 +217,6 @@ export default async function TestsPage() {
           </>
         )}
       </main>
-    </div>
+    </StudentLayout>
   )
 }
