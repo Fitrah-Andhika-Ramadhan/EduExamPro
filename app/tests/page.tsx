@@ -1,15 +1,117 @@
 import { auth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { tests, results, userPurchases } from '@/lib/db/schema'
 import { eq, desc, and } from 'drizzle-orm'
-import Link from 'next/link'
 import StudentLayout from '@/components/layout/student-layout'
 import PublicLayout from '@/components/layout/public-layout'
-import { BookOpen } from 'lucide-react'
 import TryoutPackagesClient from '@/components/tests/tryout-packages-client'
 
 export const dynamic = 'force-dynamic'
+
+const DEFAULT_TRYOUT_PACKAGES = [
+  {
+    id: 201,
+    title: 'SKD CPNS 2025 — Simulasi Lengkap CAT',
+    description: 'Simulasi ujian SKD paling mirip aslinya: 110 soal TWK + TIU + TKP dalam 100 menit. Sistem penilaian mengikuti standar BKN terbaru.',
+    durationMinutes: 100,
+    passingScore: 311,
+    showResults: true,
+    categoryId: 1,
+    price: 99000,
+    originalPrice: 159000,
+    badge: 'Terpopuler',
+    badgeColor: 'bg-rose-500',
+    icon: '🎯',
+    gradient: 'from-indigo-700 to-blue-600',
+    questionCount: 110,
+    features: ['110 Soal TWK + TIU + TKP', 'Sistem CAT real-time', 'Pembahasan video & teks', 'Analisis kelemahan otomatis'],
+  },
+  {
+    id: 202,
+    title: 'PPPK Guru 2025 — Paket Intensif',
+    description: 'Latihan soal kompetensi teknis, pedagogik, dan manajerial khusus formasi Guru. Update kisi-kisi resmi 2025.',
+    durationMinutes: 120,
+    passingScore: 70,
+    showResults: true,
+    categoryId: 1,
+    price: 129000,
+    originalPrice: 199000,
+    badge: 'Baru',
+    badgeColor: 'bg-emerald-500',
+    icon: '👩‍🏫',
+    gradient: 'from-emerald-600 to-teal-600',
+    questionCount: 100,
+    features: ['100 soal kompetensi teknis', 'Soal pedagogik & manajerial', 'Kisi-kisi 2025 terbaru', 'Tryout bisa diulang 3x'],
+  },
+  {
+    id: 203,
+    title: 'Simulasi BUMN — Tes Akhlak & TKD',
+    description: 'Latihan soal rekrutmen BUMN: penalaran verbal, numerik, logika, dan core values Akhlak yang sering muncul di seleksi resmi.',
+    durationMinutes: 90,
+    passingScore: 65,
+    showResults: true,
+    categoryId: 2,
+    price: 79000,
+    originalPrice: 120000,
+    badge: null,
+    badgeColor: null,
+    icon: '🏢',
+    gradient: 'from-violet-600 to-purple-700',
+    questionCount: 80,
+    features: ['80 soal Tes Akhlak BUMN', 'Penalaran verbal & numerik', 'Standar FHCI 2025', 'Laporan skor instan'],
+  },
+  {
+    id: 204,
+    title: 'UTBK SNBT 2025 — TPS & Literasi',
+    description: 'Paket simulasi UTBK mencakup Tes Potensi Skolastik dan Literasi Bahasa Indonesia + Inggris. Format terbaru SNBT 2025.',
+    durationMinutes: 145,
+    passingScore: 700,
+    showResults: true,
+    categoryId: 3,
+    price: 69000,
+    originalPrice: 99000,
+    badge: null,
+    badgeColor: null,
+    icon: '📖',
+    gradient: 'from-amber-500 to-orange-600',
+    questionCount: 155,
+    features: ['TPS: Penalaran Umum & Kuantitatif', 'Literasi Bahasa Indonesia', 'Literasi Bahasa Inggris', 'Standar SNBT 2025'],
+  },
+  {
+    id: 205,
+    title: 'Kedinasan IPDN & STAN Intensif',
+    description: 'Persiapan lengkap seleksi sekolah kedinasan: psikotes, TIU, dan wawasan kebangsaan. Khusus untuk IPDN, STAN, dan STIS.',
+    durationMinutes: 90,
+    passingScore: 60,
+    showResults: true,
+    categoryId: 4,
+    price: 89000,
+    originalPrice: 149000,
+    badge: 'Eksklusif',
+    badgeColor: 'bg-sky-500',
+    icon: '🎓',
+    gradient: 'from-sky-600 to-cyan-600',
+    questionCount: 90,
+    features: ['Soal psikotes spesifik kedinasan', 'TIU & wawasan kebangsaan', 'Simulasi mirip tes asli', 'Berlaku untuk 5+ sekolah kedinasan'],
+  },
+  {
+    id: 206,
+    title: 'Paket Bundel SKD + PPPK + BUMN',
+    description: 'Hemat besar! Satu paket untuk tiga jalur seleksi utama: CPNS SKD, PPPK, dan Rekrutmen BUMN. Cocok untuk persiapan menyeluruh.',
+    durationMinutes: 0,
+    passingScore: 0,
+    showResults: true,
+    categoryId: 1,
+    price: 249000,
+    originalPrice: 450000,
+    badge: 'Hemat 45%',
+    badgeColor: 'bg-amber-500',
+    icon: '🏆',
+    gradient: 'from-rose-600 to-pink-600',
+    questionCount: 290,
+    features: ['3 paket tryout lengkap', '290+ soal gabungan', 'Akses 6 bulan penuh', 'Konsultasi mentor via WA'],
+  },
+]
 
 export default async function TestsPage() {
   const session = await auth()
@@ -26,55 +128,22 @@ export default async function TestsPage() {
   let myPurchases = new Set<string>()
 
   try {
-    allTests = await db
-      .select({
-        id: tests.id,
-        title: tests.title,
-        description: tests.description,
-        durationMinutes: tests.durationMinutes,
-        passingScore: tests.passingScore,
-        showResults: tests.showResults,
-        categoryId: tests.categoryId,
-      })
+    const dbTests = await db
+      .select({ id: tests.id, title: tests.title, description: tests.description, durationMinutes: tests.durationMinutes, passingScore: tests.passingScore, showResults: tests.showResults, categoryId: tests.categoryId })
       .from(tests)
       .where(eq(tests.isPublished, true))
       .orderBy(desc(tests.createdAt))
+
+    if (dbTests.length > 0) {
+      allTests = dbTests.map((t, idx) => ({ ...t, price: idx % 2 === 0 ? 150000 : 99000, originalPrice: idx % 2 === 0 ? 250000 : 150000 }))
+    }
   } catch (err) {
     console.error('Failed to load tryout data from DB:', err)
   }
 
-  // TODO: Remove this mock when admin panel supports pricing & DB is connected
+  // Fall back to rich defaults if DB is empty
   if (allTests.length === 0) {
-    allTests = [
-      {
-        id: 101,
-        title: 'Paket Tryout SKD CPNS Lengkap (Sistem CAT)',
-        description: 'Simulasi lengkap TWK, TIU, dan TKP sesuai standar BKN terbaru dengan sistem CAT real-time.',
-        durationMinutes: 100,
-        passingScore: 311,
-        showResults: true,
-        categoryId: 1,
-        price: 99000,
-        originalPrice: 150000,
-      },
-      {
-        id: 102,
-        title: 'Simulasi BUMN (Tes Akhlak & TKD)',
-        description: 'Latihan soal-soal penalaran, verbal, dan core values BUMN yang sering keluar.',
-        durationMinutes: 90,
-        passingScore: 65,
-        showResults: true,
-        categoryId: 2,
-        price: 150000,
-        originalPrice: 200000,
-      }
-    ]
-  } else {
-    allTests = allTests.map((t, idx) => ({
-      ...t,
-      price: idx % 2 === 0 ? 150000 : 99000,
-      originalPrice: idx % 2 === 0 ? 250000 : 150000,
-    }))
+    allTests = DEFAULT_TRYOUT_PACKAGES
   }
 
   try {
@@ -106,35 +175,14 @@ export default async function TestsPage() {
 
   return (
     <LayoutComponent>
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-10">
-        <div className="mb-10 text-center sm:text-left">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Katalog Tryout</h1>
-          <p className="text-gray-500">Pilih dan ikuti tryout untuk mengukur kemampuan Anda secara real-time.</p>
-        </div>
-
-        {allTests.length === 0 ? (
-          <div className="max-w-3xl mx-auto text-center py-24 bg-white rounded-3xl border border-gray-100 shadow-xl">
-            <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <BookOpen className="w-10 h-10 text-indigo-300" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Belum ada tryout tersedia</h3>
-            <p className="text-gray-500 max-w-md mx-auto mb-8">Admin sedang menyusun paket tryout terbaik untuk Anda.</p>
-            {userRole === 'admin' && (
-              <Link href="/admin/settings" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors">
-                Pergi ke Admin Settings
-              </Link>
-            )}
-          </div>
-        ) : (
-          <TryoutPackagesClient 
-            allTests={allTests} 
-            bestResults={bestResults} 
-            userPlan={userPlan} 
-            userRole={userRole} 
-            myPurchases={Array.from(myPurchases)}
-          />
-        )}
-      </div>
+      <TryoutPackagesClient 
+        allTests={allTests} 
+        bestResults={bestResults} 
+        userPlan={userPlan} 
+        userRole={userRole} 
+        myPurchases={Array.from(myPurchases)}
+        isPublic={isPublic}
+      />
     </LayoutComponent>
   )
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Search, ShoppingCart, Check, SlidersHorizontal, Lock, BookOpen } from 'lucide-react'
+import { Search, ShoppingCart, Check, CheckCircle, Lock, Clock, Target, HelpCircle, Star, Users, Filter } from 'lucide-react'
 import { useCartStore } from '@/lib/store/cart-store'
 
 type TestType = {
@@ -16,6 +16,12 @@ type TestType = {
   categoryId: number | null
   price?: number | null
   originalPrice?: number | null
+  badge?: string | null
+  badgeColor?: string | null
+  icon?: string
+  gradient?: string
+  questionCount?: number
+  features?: string[]
 }
 
 type BestResultsType = Record<number, { percentage: string | null; passed: boolean | null }>
@@ -26,6 +32,17 @@ type TryoutPackagesClientProps = {
   userPlan: string
   userRole: string
   myPurchases?: string[]
+  isPublic?: boolean
+}
+
+const CATEGORIES = ['Semua', 'CPNS / PPPK', 'BUMN', 'UTBK / SNBT', 'Kedinasan']
+
+function getCategoryMatch(title: string) {
+  if (/cpns|skd|tiu|twk|tkp|pppk|guru/i.test(title)) return 'CPNS / PPPK'
+  if (/bumn|akhlak|tkd/i.test(title)) return 'BUMN'
+  if (/utbk|snbt|tps|tka|saintek|soshum|literasi/i.test(title)) return 'UTBK / SNBT'
+  if (/kedinasan|ipdn|stan|stis/i.test(title)) return 'Kedinasan'
+  return 'Semua'
 }
 
 export default function TryoutPackagesClient({ 
@@ -33,258 +50,326 @@ export default function TryoutPackagesClient({
   bestResults,
   userPlan,
   userRole,
-  myPurchases = []
+  myPurchases = [],
+  isPublic = false
 }: TryoutPackagesClientProps) {
   const router = useRouter()
   const purchasesSet = new Set(myPurchases)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState('Semua')
-
-  // Derive categories
-  const categories = ['Semua', 'CPNS', 'UTBK', 'Kedinasan', 'Lainnya']
+  const [addedId, setAddedId] = useState<string | null>(null)
 
   const filteredTests = allTests.filter(t => {
-    // Search filter
-    if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase()) && !(t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase()))) {
-      return false
-    }
-    // Category filter
-    if (activeFilter === 'CPNS' && !/cpns|skd|tiu|twk|tkp|pppk/i.test(t.title)) return false
-    if (activeFilter === 'UTBK' && !/utbk|snbt|tps|tka|saintek|soshum/i.test(t.title)) return false
-    if (activeFilter === 'Kedinasan' && !/kedinasan|ipdn|stan|stis/i.test(t.title)) return false
-    if (activeFilter === 'Lainnya' && (/cpns|skd|tiu|twk|tkp|pppk|utbk|snbt|tps|tka|saintek|soshum|kedinasan|ipdn|stan|stis/i.test(t.title))) return false
-
-    return true
+    const matchSearch = !searchQuery || 
+      t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    
+    const matchCategory = activeFilter === 'Semua' || getCategoryMatch(t.title) === activeFilter
+    return matchSearch && matchCategory
   })
 
-  const getBadgeInfo = (title: string) => {
-    if (/cpns|skd|tiu|twk|tkp|pppk/i.test(title)) return { label: 'CPNS / PPPK', color: 'bg-blue-100 text-blue-800 border-blue-200' }
-    if (/utbk|snbt|tps|tka/i.test(title)) return { label: 'SNBT-UTBK', color: 'bg-cyan-100 text-cyan-800 border-cyan-200' }
-    if (/kedinasan|ipdn|stan/i.test(title)) return { label: 'Kedinasan', color: 'bg-teal-100 text-teal-800 border-teal-200' }
-    return { label: 'TPA / Umum', color: 'bg-gray-100 text-gray-800 border-gray-200' }
-  }
+  const discountPct = (orig: number, price: number) => Math.round(((orig - price) / orig) * 100)
 
-  // A helper to get a random/pseudo-random image based on test ID
-  const getImageForTest = (id: number) => {
-    const images = [
-      'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=500&auto=format&fit=crop&q=60',
-      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&auto=format&fit=crop&q=60',
-      'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500&auto=format&fit=crop&q=60',
-      'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=500&auto=format&fit=crop&q=60',
-      'https://images.unsplash.com/photo-1546410531-bea5aadcb6ce?w=500&auto=format&fit=crop&q=60',
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&auto=format&fit=crop&q=60'
-    ]
-    return images[id % images.length]
+  const handleAddToCart = (test: TestType, goToCart = false) => {
+    useCartStore.getState().addItem({
+      id: String(test.id),
+      title: test.title,
+      price: test.price!,
+      type: 'test'
+    })
+    if (goToCart) {
+      router.push('/cart')
+    } else {
+      setAddedId(String(test.id))
+      setTimeout(() => setAddedId(null), 2000)
+    }
   }
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6">
-      
-      {/* Search and Filter Bar */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar gap-2 px-1">
-          {categories.map(cat => (
-            <button 
-              key={cat}
-              onClick={() => setActiveFilter(cat)}
-              className={`whitespace-nowrap px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                activeFilter === cat 
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' 
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/20">
+      {/* Hero Header */}
+      <div className="bg-gradient-to-r from-blue-800 via-indigo-700 to-violet-700 text-white py-14 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-20 w-64 h-64 bg-white rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-10 w-80 h-80 bg-violet-300 rounded-full blur-3xl" />
         </div>
-
-        <div className="w-full md:w-96 flex items-center gap-2 bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-200 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-200 transition-all">
-          <Search className="w-5 h-5 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Cari Paket Tryout..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-transparent border-none outline-none text-sm w-full font-medium placeholder:font-normal"
-          />
-          <button className="text-gray-400 hover:text-indigo-600 transition-colors">
-            <SlidersHorizontal className="w-4 h-4" />
-          </button>
+        <div className="max-w-6xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 bg-white/15 border border-white/20 rounded-full px-4 py-1.5 text-sm font-medium mb-5 backdrop-blur-sm">
+            <Target className="w-4 h-4" />
+            Katalog Tryout & Simulasi Ujian 2025
+          </div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4 leading-tight">
+            Uji Kemampuan Anda dengan<br className="hidden sm:block" /> Simulasi Ujian Sesungguhnya
+          </h1>
+          <p className="text-indigo-100 text-base sm:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
+            Tryout berbasis CAT dengan pembahasan mendalam. Ketahui nilai Anda secara instan dan pelajari di mana kelemahan yang perlu diperbaiki.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-indigo-200">
+            <span className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-400" /> 10.000+ Peserta Tryout</span>
+            <span className="flex items-center gap-1.5"><Star className="w-4 h-4 text-yellow-400" /> Mirip Soal Asli</span>
+            <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-sky-400" /> Hasil Instan</span>
+          </div>
         </div>
       </div>
 
-      {/* Grid of Packages */}
-      {filteredTests.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm">
-          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search className="w-10 h-10 text-gray-300" />
+      {/* Search + Filter Sticky Bar */}
+      <div className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          {/* Search */}
+          <div className="flex items-center gap-2 bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-200 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all flex-1 max-w-sm">
+            <Search className="w-4 h-4 text-gray-400 shrink-0" />
+            <input 
+              type="text" 
+              placeholder="Cari paket tryout..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent outline-none text-sm w-full placeholder:text-gray-400"
+            />
           </div>
-          <h3 className="text-xl font-bold text-gray-800">Paket tidak ditemukan</h3>
-          <p className="text-gray-500">Coba ubah kata kunci atau filter pencarian Anda.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-          {filteredTests.map((test, index) => {
-            const isAttempted = !!bestResults[test.id]
-            const result = bestResults[test.id]
-            const badgeInfo = getBadgeInfo(test.title)
-            
-            // Limit first 2 tests for free users
-            const isLocked = userPlan === 'free' && userRole !== 'admin' && allTests.findIndex(t => t.id === test.id) >= 2 && !purchasesSet.has(String(test.id))
-            const isPurchased = purchasesSet.has(String(test.id)) || userPlan === 'pro' || userRole === 'admin'
 
-            return (
-              <div 
-                key={test.id} 
-                className="group relative bg-white rounded-[1.5rem] border border-gray-200 overflow-hidden flex flex-col h-full hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1.5 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
-                style={{ animationFillMode: 'both', animationDelay: `${index * 50}ms` }}
+          {/* Filter pills */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <Filter className="w-4 h-4 text-gray-400 shrink-0" />
+            {CATEGORIES.map(cat => (
+              <button 
+                key={cat}
+                onClick={() => setActiveFilter(cat)}
+                className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                  activeFilter === cat 
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-indigo-700'
+                }`}
               >
-                {/* Header Image with Zoom Effect */}
-                <div className="h-40 w-full overflow-hidden relative bg-gray-100">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={getImageForTest(test.id)} 
-                    alt={test.title} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  {isAttempted && (
-                    <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm flex items-center gap-1">
-                      <Check className="w-3 h-3"/> SUDAH DIKERJAKAN
-                    </div>
-                  )}
-                  {isLocked && !isPurchased && (
-                    <div className="absolute top-3 left-3 z-20 bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm flex items-center gap-1">
-                      <Lock className="w-3 h-3"/> PREMIUM
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-5 flex flex-col flex-1 relative z-20 bg-white">
-                  {/* Category Badge */}
-                  <div className="mb-3 flex justify-between items-start">
-                    <span className={`text-[10px] uppercase font-bold px-3 py-1 rounded-full border ${badgeInfo.color}`}>
-                      {badgeInfo.label}
-                    </span>
-                    {isAttempted && result && (
-                      <span className={`text-[10px] font-bold px-2 py-1 rounded border ${result.passed ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
-                        SKOR: {parseFloat(result.percentage ?? '0').toFixed(0)}%
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Title & Price/Plan */}
-                  <h3 className="text-lg font-extrabold text-gray-900 leading-snug mb-1 line-clamp-2 min-h-[3rem]">
-                    {test.title}
-                  </h3>
-                  <div className="mb-2">
-                    {test.price != null ? (
-                      <div className="flex flex-col">
-                        {test.originalPrice != null && test.originalPrice > test.price && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400 line-through">Rp {test.originalPrice.toLocaleString('id-ID')}</span>
-                            <span className="text-[10px] bg-red-100 text-red-600 font-bold px-1.5 py-0.5 rounded">Diskon</span>
-                          </div>
-                        )}
-                        <span className="text-xl font-black text-indigo-600">Rp {test.price.toLocaleString('id-ID')}</span>
-                      </div>
-                    ) : isLocked ? (
-                      <span className="flex items-center gap-1.5 text-amber-500 text-xl font-black"><Lock className="w-5 h-5"/> Premium</span>
-                    ) : (
-                      <span className="text-xl font-black text-indigo-600">Gratis</span>
-                    )}
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-xs text-gray-500 mb-5 line-clamp-2 min-h-[2rem]">
-                    {test.description || 'Latihan simulasi mirip tes aslinya dengan sistem CAT.'}
-                  </p>
-
-                  {/* Features List */}
-                  <div className="space-y-2 mb-6 mt-auto">
-                    <div className="flex items-start gap-2">
-                      <div className="bg-emerald-100 rounded-full p-0.5 mt-0.5"><Check className="w-3 h-3 text-emerald-600" /></div>
-                      <span className="text-xs text-gray-600 font-medium">Durasi Pengerjaan {test.durationMinutes} Menit</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="bg-emerald-100 rounded-full p-0.5 mt-0.5"><Check className="w-3 h-3 text-emerald-600" /></div>
-                      <span className="text-xs text-gray-600 font-medium">Passing Grade / KKM: {test.passingScore}</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="bg-emerald-100 rounded-full p-0.5 mt-0.5"><Check className="w-3 h-3 text-emerald-600" /></div>
-                      <span className="text-xs text-gray-600 font-medium">Format soal sesuai standar terbaru</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="bg-emerald-100 rounded-full p-0.5 mt-0.5"><Check className="w-3 h-3 text-emerald-600" /></div>
-                      <span className="text-xs text-gray-600 font-medium">Pembahasan detail setiap soal</span>
-                    </div>
-                  </div>
-
-                  {/* Buttons */}
-                  <div className="flex items-center gap-2 pt-4 border-t border-gray-100 mt-auto">
-                    {!isPurchased && test.price != null ? (
-                       <button 
-                         onClick={() => {
-                           useCartStore.getState().addItem({
-                             id: String(test.id),
-                             title: test.title,
-                             price: test.price!,
-                             type: 'test'
-                           })
-                           router.push('/cart')
-                         }}
-                         className="flex-1 text-center py-2.5 rounded-xl font-bold text-sm bg-[#217b9b] text-white hover:bg-[#19637c] shadow-md shadow-[#217b9b]/20 transition-all"
-                       >
-                         Beli Sekarang ➔
-                       </button>
-                    ) : (
-                      <Link 
-                        href={isLocked ? '/choose-plan' : (userRole === 'public' ? '/sign-in' : `/tests/${test.id}/take`)}
-                        className={`flex-1 text-center py-2.5 rounded-xl font-bold text-sm transition-all ${
-                          isLocked 
-                            ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                            : 'bg-[#217b9b] text-white hover:bg-[#19637c] shadow-md shadow-[#217b9b]/20'
-                        }`}
-                      >
-                        {isLocked ? 'Buka Kunci Premium' : (userRole === 'public' ? 'Masuk untuk Memulai ➔' : (isAttempted ? 'Kerjakan Ulang ➔' : 'Lihat Detail ➔'))}
-                      </Link>
-                    )}
-                    
-                    {!isPurchased && test.price != null && (
-                      <button 
-                        onClick={() => {
-                          useCartStore.getState().addItem({
-                            id: String(test.id),
-                            title: test.title,
-                            price: test.price!,
-                            type: 'test'
-                          })
-                          alert('Berhasil ditambahkan ke keranjang!')
-                        }}
-                        className="w-10 h-10 rounded-xl border border-gray-200 text-[#217b9b] flex items-center justify-center hover:border-[#217b9b] hover:bg-[#217b9b]/5 transition-all shrink-0"
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-
-                </div>
-              </div>
-            )
-          })}
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
-      )}
+      </div>
 
-      {/* Global CSS for hiding scrollbar if not present */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}} />
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-gray-600 text-sm">
+            <span className="font-bold text-gray-900">{filteredTests.length}</span> paket tryout{searchQuery && ` untuk "${searchQuery}"`}
+          </p>
+          <select className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option>Terpopuler</option>
+            <option>Harga Terendah</option>
+            <option>Harga Tertinggi</option>
+            <option>Terbaru</option>
+          </select>
+        </div>
+
+        {filteredTests.length === 0 ? (
+          <div className="text-center py-24 bg-white rounded-3xl border border-gray-100 shadow-sm">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-10 h-10 text-gray-200" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Paket tidak ditemukan</h3>
+            <p className="text-gray-500">Coba ubah kata kunci atau filter pencarian Anda.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTests.map((test, index) => {
+              const isAttempted = !!bestResults[test.id]
+              const result = bestResults[test.id]
+              const isPurchased = purchasesSet.has(String(test.id)) || userPlan === 'pro' || userRole === 'admin'
+              const isLocked = !isPurchased && !isPublic && userPlan === 'free' && allTests.findIndex(t => t.id === test.id) >= 2
+              const gradient = test.gradient || 'from-indigo-600 to-blue-700'
+              const icon = test.icon || '📝'
+              const disc = test.originalPrice && test.price ? discountPct(test.originalPrice, test.price) : null
+              const isAdded = addedId === String(test.id)
+
+              return (
+                <div 
+                  key={test.id} 
+                  className="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300"
+                >
+                  {/* Thumbnail */}
+                  <div className={`relative h-40 bg-gradient-to-br ${gradient} overflow-hidden flex items-center justify-center`}>
+                    <div className="absolute inset-0 bg-black/10" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+                    <span className="relative text-5xl drop-shadow-lg">{icon}</span>
+
+                    {/* Badges */}
+                    <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
+                      {test.badge ? (
+                        <span className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-full text-white shadow-sm ${test.badgeColor || 'bg-rose-500'}`}>
+                          {test.badge}
+                        </span>
+                      ) : <span />}
+                      <div className="flex flex-col items-end gap-1">
+                        {isPurchased && (
+                          <span className="text-[10px] uppercase font-bold px-2 py-1 rounded-full bg-emerald-500 text-white flex items-center gap-1 shadow-sm">
+                            <CheckCircle className="w-3 h-3" /> Dimiliki
+                          </span>
+                        )}
+                        {isAttempted && result && (
+                          <span className={`text-[10px] font-bold px-2 py-1 rounded-full shadow-sm ${
+                            result.passed ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'
+                          }`}>
+                            Skor: {parseFloat(result.percentage ?? '0').toFixed(0)}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Duration pill */}
+                    {test.durationMinutes && test.durationMinutes > 0 && (
+                      <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/40 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+                        <Clock className="w-3 h-3" /> {test.durationMinutes} menit
+                      </div>
+                    )}
+
+                    {disc && !isPurchased && (
+                      <div className="absolute bottom-3 right-3 bg-red-500 text-white text-xs font-black px-2 py-0.5 rounded-full shadow">
+                        -{disc}%
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3 className="font-extrabold text-gray-900 text-base leading-snug mb-2 line-clamp-2 min-h-[2.75rem]">
+                      {test.title}
+                    </h3>
+
+                    <p className="text-xs text-gray-500 line-clamp-2 mb-4 leading-relaxed">
+                      {test.description || 'Latihan simulasi mirip tes aslinya dengan sistem CAT dan pembahasan detail.'}
+                    </p>
+
+                    {/* Stats Pills */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {test.questionCount && (
+                        <div className="flex items-center gap-1 bg-indigo-50 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                          <HelpCircle className="w-3 h-3" /> {test.questionCount} Soal
+                        </div>
+                      )}
+                      {test.passingScore && test.passingScore > 0 && (
+                        <div className="flex items-center gap-1 bg-amber-50 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                          <Target className="w-3 h-3" /> KKM: {test.passingScore}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Features */}
+                    {test.features && test.features.length > 0 && (
+                      <div className="space-y-1.5 mb-4">
+                        {test.features.slice(0, 3).map((f, i) => (
+                          <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            {f}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Price */}
+                    <div className="mt-auto pt-3 border-t border-gray-50">
+                      {isPurchased ? (
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-emerald-600 font-bold text-sm flex items-center gap-1.5">
+                            <CheckCircle className="w-4 h-4" /> Sudah dibeli
+                          </span>
+                        </div>
+                      ) : test.price != null ? (
+                        <div className="flex items-end gap-2 mb-3">
+                          <span className="text-2xl font-black text-indigo-600">Rp {test.price.toLocaleString('id-ID')}</span>
+                          {test.originalPrice && test.originalPrice > test.price && (
+                            <span className="text-sm text-gray-400 line-through mb-0.5">Rp {test.originalPrice.toLocaleString('id-ID')}</span>
+                          )}
+                        </div>
+                      ) : isLocked ? (
+                        <div className="flex items-center gap-2 mb-3">
+                          <Lock className="w-4 h-4 text-amber-500" />
+                          <span className="font-black text-amber-600 text-lg">Premium</span>
+                        </div>
+                      ) : (
+                        <div className="mb-3">
+                          <span className="font-black text-emerald-600 text-xl">🎁 Gratis</span>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2">
+                        {isPurchased ? (
+                          <Link
+                            href={`/tests/${test.id}/take`}
+                            className="flex-1 text-center py-2.5 rounded-xl font-bold text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20"
+                          >
+                            {isAttempted ? 'Kerjakan Ulang ➔' : 'Mulai Tryout ➔'}
+                          </Link>
+                        ) : test.price != null ? (
+                          <>
+                            <button
+                              onClick={() => handleAddToCart(test, true)}
+                              className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-600/20 transition-all"
+                            >
+                              Beli Sekarang ➔
+                            </button>
+                            <button 
+                              onClick={() => handleAddToCart(test)}
+                              className={`w-11 rounded-xl border-2 flex items-center justify-center transition-all shrink-0 ${
+                                isAdded 
+                                  ? 'border-emerald-500 bg-emerald-50 text-emerald-600' 
+                                  : 'border-gray-200 text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50'
+                              }`}
+                              title="Tambah ke Keranjang"
+                            >
+                              {isAdded ? <Check className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
+                            </button>
+                          </>
+                        ) : isLocked ? (
+                          <Link
+                            href="/choose-plan"
+                            className="flex-1 text-center py-2.5 rounded-xl font-bold text-sm bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-md shadow-amber-500/20"
+                          >
+                            🔓 Upgrade ke Pro
+                          </Link>
+                        ) : (
+                          <Link
+                            href={isPublic ? `/sign-in?redirect=/tests` : `/tests/${test.id}/take`}
+                            className="flex-1 text-center py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/20"
+                          >
+                            {isPublic ? 'Masuk & Mulai ➔' : 'Kerjakan Gratis ➔'}
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* CTA Banner */}
+        <div className="mt-12 bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-700 rounded-3xl p-8 sm:p-10 text-white text-center shadow-xl shadow-indigo-600/20 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl translate-x-1/3 -translate-y-1/2" />
+          </div>
+          <div className="relative z-10">
+            <h2 className="text-2xl sm:text-3xl font-extrabold mb-3">Mau hemat lebih banyak?</h2>
+            <p className="text-indigo-200 mb-6 max-w-xl mx-auto">Ambil Paket Bundel dan akses 3 tryout lengkap — SKD CPNS, PPPK, dan BUMN — dengan harga spesial hemat 45%.</p>
+            <button 
+              onClick={() => {
+                const bundel = allTests.find(t => t.id === 206)
+                if (bundel && bundel.price) {
+                  useCartStore.getState().addItem({ id: String(bundel.id), title: bundel.title, price: bundel.price!, type: 'test' })
+                  router.push('/cart')
+                }
+              }}
+              className="px-8 py-3.5 bg-white text-indigo-700 font-black rounded-xl hover:bg-indigo-50 transition-all shadow-lg text-sm sm:text-base"
+            >
+              Ambil Paket Bundel ➔
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <style dangerouslySetInnerHTML={{__html: `.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}`}} />
     </div>
   )
 }

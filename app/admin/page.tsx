@@ -51,7 +51,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Institutional Overview Cards */}
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <section className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bento-card p-6 border-l-4 border-secondary">
           <div className="flex justify-between items-start mb-4">
             <div className="p-2 bg-secondary-fixed text-secondary rounded-lg">
@@ -100,6 +100,18 @@ export default async function AdminDashboardPage() {
             <div className="bg-error-red h-full" style={{ width: '85%' }}></div>
           </div>
         </div>
+        {/* Orders card */}
+        <a href="/admin/orders" className="bento-card p-6 border-l-4 border-amber-500 hover:shadow-lg transition-all group">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
+              <span className="material-symbols-outlined">shopping_cart</span>
+            </div>
+            <span className="text-amber-600 font-label-md text-xs font-bold bg-amber-50 px-2 py-1 rounded-full">Kelola →</span>
+          </div>
+          <p className="text-label-md text-on-surface-variant font-medium">Pesanan Masuk</p>
+          <h3 className="font-headline-md text-headline-md text-primary mt-1">—</h3>
+          <p className="text-[10px] text-amber-600 mt-2 font-semibold">Verifikasi Pembayaran</p>
+        </a>
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
