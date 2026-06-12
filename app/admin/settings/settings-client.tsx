@@ -58,13 +58,14 @@ export default function SettingsClient({ initialSettings }: { initialSettings: R
           )}
         </div>
         <nav className="flex space-x-8 border-b border-outline-variant overflow-x-auto">
-          {['profil', 'akses', 'brand', 'keamanan', 'integrasi'].map((tab) => {
+          {['profil', 'akses', 'brand', 'keamanan', 'integrasi', 'data'].map((tab) => {
             const labels: Record<string, string> = {
               profil: 'Profil Institusi',
               akses: 'Akses & Peran',
               brand: 'Kustomisasi Brand',
               keamanan: 'Keamanan',
-              integrasi: 'Integrasi & API'
+              integrasi: 'Integrasi & API',
+              data: 'Data & Manajemen'
             }
             return (
               <button 
@@ -281,6 +282,44 @@ export default function SettingsClient({ initialSettings }: { initialSettings: R
           <section className="h-64 flex flex-col items-center justify-center opacity-40 animate-fade-in">
             <span className="material-symbols-outlined text-6xl mb-4">api</span>
             <p className="font-headline-sm text-headline-sm text-primary">Konfigurasi API Tersedia di Versi Enterprise</p>
+          </section>
+        )}
+
+        {/* Section: Data */}
+        {activeTab === 'data' && (
+          <section className="space-y-6 max-w-4xl animate-fade-in">
+            <div className="bg-surface-container-lowest p-8 rounded-lg shadow-sm border border-outline-variant/30">
+              <h3 className="font-headline-sm text-headline-sm text-primary mb-6">Manajemen Database Ujian</h3>
+              <p className="text-on-surface-variant text-sm mb-6">
+                Gunakan menu ini untuk alat bantu administratif database.
+              </p>
+              
+              <div className="border border-outline-variant/50 p-6 rounded-lg flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-1">Generate Dummy Data (Tryout)</h4>
+                  <p className="text-sm text-gray-500">Isi otomatis database dengan kategori, paket ujian, dan soal-soal latihan (CPNS & UTBK) agar sistem bisa langsung diujicoba.</p>
+                </div>
+                <button 
+                  onClick={async () => {
+                    setMessage(null)
+                    try {
+                      const res = await fetch('/api/admin/seed', { method: 'POST' });
+                      const data = await res.json();
+                      if(data.success) {
+                        setMessage({ type: 'success', text: 'Data dummy berhasil dibuat!' });
+                      } else {
+                        setMessage({ type: 'error', text: 'Gagal: ' + data.error });
+                      }
+                    } catch (e: any) {
+                      setMessage({ type: 'error', text: 'Error jaringan' });
+                    }
+                  }}
+                  className="bg-primary text-white px-6 py-2 rounded-lg font-bold hover:bg-primary-container transition-colors whitespace-nowrap ml-4"
+                >
+                  Generate Data
+                </button>
+              </div>
+            </div>
           </section>
         )}
 

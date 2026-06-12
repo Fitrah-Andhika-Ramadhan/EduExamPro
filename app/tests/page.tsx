@@ -5,7 +5,9 @@ import { tests, results } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import Link from 'next/link'
 import SharedNavBar from '@/components/shared-navbar'
-import { BookOpen, Timer, Target, PlayCircle, RotateCcw, ChevronRight, Lock } from 'lucide-react'
+import { BookOpen, Timer, Target, Lock, ChevronRight, LayoutList, Trophy, CheckCircle2 } from 'lucide-react'
+
+export const dynamic = 'force-dynamic'
 
 export default async function TestsPage() {
   const session = await auth()
@@ -16,7 +18,7 @@ export default async function TestsPage() {
   const userEmail = session.user.email ?? ''
 
   // @ts-ignore
-  const userRole = session.user.role
+  const userRole = session.user.role || 'user'
   // @ts-ignore
   const userPlan = session.user.plan || 'free'
 
@@ -32,10 +34,6 @@ export default async function TestsPage() {
     })
     .from(tests)
     .where(eq(tests.isPublished, true))
-
-  if (userPlan === 'free') {
-    allTests = allTests.slice(0, 1)
-  }
 
   const userResults = await db
     .select({ testId: results.testId, percentage: results.percentage, passed: results.passed })
@@ -57,132 +55,164 @@ export default async function TestsPage() {
   const attempted = attemptedTestIds.size
   const passed = Object.values(bestResults).filter(r => r.passed).length
 
+  // Categorize roughly by name for demonstration if category names aren't strictly joined
   const cpnsTests = allTests.filter(t => /cpns|skd|tiu|twk|tkp|pppk/i.test(t.title))
   const utbkTests = allTests.filter(t => /utbk|snbt|tps|tka|saintek|soshum/i.test(t.title))
   const otherTests = allTests.filter(t => !cpnsTests.includes(t) && !utbkTests.includes(t))
 
-  const getBadge = (title: string) => {
-    if (/grand|lengkap|komprehensif/i.test(title)) return 'Komprehensif'
-    if (/intensif|focus|khusus/i.test(title)) return 'Intensif'
-    return 'Standar'
+  const getBadgeInfo = (title: string) => {
+    if (/grand|lengkap|komprehensif/i.test(title)) return { label: 'Komprehensif', color: 'bg-purple-100 text-purple-700' }
+    if (/intensif|focus|khusus/i.test(title)) return { label: 'Intensif', color: 'bg-rose-100 text-rose-700' }
+    if (/mini/i.test(title)) return { label: 'Mini Test', color: 'bg-emerald-100 text-emerald-700' }
+    return { label: 'Standar', color: 'bg-blue-100 text-blue-700' }
   }
 
   const TestCard = ({ test, index }: { test: typeof allTests[0], index: number }) => {
     const isAttempted = !!bestResults[test.id]
-    const badgeLabel = getBadge(test.title)
+    const badgeInfo = getBadgeInfo(test.title)
     const result = bestResults[test.id]
-    const isLocked = userPlan === 'free' && index >= 5
+    // If free plan, maybe lock tests after the first 2
+    const isLocked = userPlan === 'free' && userRole !== 'admin' && index >= 2
 
     return (
-      <div className={`bg-canvas rounded-xl border border-hairline hover:elev-1 transition-shadow flex flex-col h-full relative ${isLocked ? 'opacity-80' : ''}`}>
+      <div className={`bg-white rounded-2xl border border-gray-100 hover:shadow-xl hover:border-indigo-100 transition-all flex flex-col h-full relative group overflow-hidden ${isLocked ? 'opacity-80' : ''}`}>
         {isLocked && (
-          <div className="absolute inset-0 bg-canvas/80 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center rounded-xl border border-primary/20">
-            <Lock className="w-8 h-8 text-primary mb-2" />
-            <span className="font-bold text-primary">Akses Premium</span>
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-2xl border border-gray-200">
+            <div className="bg-white p-4 rounded-full shadow-lg mb-3">
+              <Lock className="w-8 h-8 text-indigo-600" />
+            </div>
+            <span className="font-bold text-gray-900 text-lg">Paket Premium</span>
+            <span className="text-sm text-gray-500 mt-1">Upgrade ke Pro untuk mengakses</span>
           </div>
         )}
-        <div className="p-8 flex-1">
-          <div className="flex items-start justify-between gap-4 mb-6">
-            <span className="pill-cap-shade">{badgeLabel}</span>
+        
+        {/* Decorative Top Border */}
+        <div className="h-1.5 w-full bg-gradient-to-r from-indigo-500 to-purple-500" />
+
+        <div className="p-6 flex-1 flex flex-col">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <span className={`text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md ${badgeInfo.color}`}>
+              {badgeInfo.label}
+            </span>
             {isAttempted && (
-              <span className={`pill-cap-shade !px-3 !py-1 ${result?.passed ? 'bg-semantic-success/10 text-semantic-success' : 'bg-semantic-error/10 text-semantic-error'}`}>
+              <span className={`text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md border ${result?.passed ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200'}`}>
                 {result?.passed ? 'Lulus' : `${parseFloat(result?.percentage ?? '0').toFixed(0)}%`}
               </span>
             )}
           </div>
-          <h3 className="heading-md text-ink mb-3 leading-snug">
+          
+          <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight group-hover:text-indigo-600 transition-colors">
             {test.title}
           </h3>
-          {test.description && (
-            <p className="body-md text-ink-mute mb-6 line-clamp-2">
+          
+          {test.description ? (
+            <p className="text-sm text-gray-500 mb-6 line-clamp-2">
               {test.description}
             </p>
+          ) : (
+            <p className="text-sm text-gray-400 italic mb-6">Tanpa deskripsi tambahan.</p>
           )}
-          <div className="flex items-center gap-6 caption text-ink-mute mt-auto">
-            <span className="flex items-center gap-2">
-              <Timer className="w-4 h-4" />
+
+          <div className="flex items-center gap-4 text-sm text-gray-600 font-semibold mt-auto bg-gray-50 p-3 rounded-xl border border-gray-100">
+            <span className="flex items-center gap-1.5">
+              <Timer className="w-4 h-4 text-indigo-500" />
               {test.durationMinutes} mnt
             </span>
-            <span className="flex items-center gap-2">
-              <Target className="w-4 h-4" />
+            <div className="w-1 h-1 bg-gray-300 rounded-full" />
+            <span className="flex items-center gap-1.5">
+              <Target className="w-4 h-4 text-rose-500" />
               KKM: {test.passingScore}
             </span>
           </div>
         </div>
-        <div className="px-8 pb-8 pt-0">
+
+        <div className="px-6 pb-6 pt-0 mt-2">
           <Link
-            href={isLocked ? '#' : `/tests/${test.id}/take`}
-            className={`w-full text-center block py-2 px-4 rounded-lg font-bold transition-colors ${isLocked ? 'bg-ink-mute text-canvas cursor-not-allowed' : (isAttempted ? 'button-outline-aubergine' : 'button-primary-pill')}`}
+            href={isLocked ? '/choose-plan' : `/tests/${test.id}/take`}
+            className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all ${isLocked ? 'bg-gray-100 text-gray-400 hover:bg-gray-200' : (isAttempted ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200')}`}
           >
-            {isLocked ? 'Terkunci' : (isAttempted ? 'Ulangi Tryout' : 'Mulai Tryout')}
+            {isLocked ? 'Buka Kunci' : (isAttempted ? 'Kerjakan Ulang' : 'Mulai Ujian')}
+            {!isLocked && <ChevronRight className="w-4 h-4" />}
           </Link>
         </div>
       </div>
     )
   }
 
-  const TestSection = ({ title, tests, icon, offset = 0 }: { title: string; tests: typeof allTests; icon: string, offset?: number }) => {
+  const TestSection = ({ title, tests, icon, offset = 0 }: { title: string; tests: typeof allTests; icon: React.ReactNode, offset?: number }) => {
     if (tests.length === 0) return null
     return (
       <section className="mb-16">
-        <div className="flex items-center gap-4 mb-8">
-          <span className="text-4xl">{icon}</span>
-          <div>
-            <h2 className="heading-lg text-ink">{title}</h2>
-            <p className="body-md text-ink-mute">{tests.length} paket tryout tersedia</p>
+        <div className="flex items-center justify-between mb-8 border-b border-gray-200 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center text-indigo-600">
+              {icon}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+              <p className="text-sm font-semibold text-gray-500">{tests.length} paket tryout tersedia</p>
+            </div>
           </div>
-          <Link href="#" className="ml-auto link-on-light flex items-center gap-1 font-bold">
-            Lihat semua <ChevronRight className="w-4 h-4" />
-          </Link>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tests.map((t, i) => <TestCard key={t.id} test={t} index={i} />)}
+          {tests.map((t, i) => <TestCard key={t.id} test={t} index={i + offset} />)}
         </div>
       </section>
     )
   }
 
   return (
-    <div className="min-h-screen bg-canvas font-sans">
+    <div className="min-h-screen bg-gray-50 font-sans">
       <SharedNavBar email={userEmail} name={userName} role={userRole} currentPath="/tests" />
 
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="display-xl text-ink mb-4">Paket Tryout</h1>
-          <p className="body-lg text-ink-mute">
-            Pilih paket tryout yang sesuai dengan persiapan ujian Anda
-          </p>
+      {/* Hero Section with Mesh Gradient */}
+      <div className="relative pt-12 pb-24 overflow-hidden" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)' }}>
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '30px 30px' }} />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 text-center">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">Katalog Ujian & Tryout</h1>
+          <p className="text-indigo-200 text-lg max-w-2xl mx-auto">Uji kesiapan Anda dengan simulasi CAT yang identik dengan sistem aslinya. Tersedia paket untuk CPNS, PPPK, dan UTBK.</p>
         </div>
+      </div>
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 -mt-16 relative z-20 pb-20">
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-6 mb-16">
-          <div className="card-stat border border-hairline flex flex-col justify-center items-center">
-            <div className="display-lg text-primary">{totalTryout}</div>
-            <div className="body-strong text-ink-mute mt-2">Total Paket</div>
+        <div className="grid grid-cols-3 gap-4 md:gap-6 mb-16">
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-xl shadow-gray-200/40 flex flex-col justify-center items-center">
+            <div className="text-4xl font-black text-indigo-600 mb-1">{totalTryout}</div>
+            <div className="text-sm font-bold text-gray-500 uppercase tracking-wider text-center">Total Paket</div>
           </div>
-          <div className="card-stat border border-hairline flex flex-col justify-center items-center">
-            <div className="display-lg text-link-blue">{attempted}</div>
-            <div className="body-strong text-ink-mute mt-2">Dikerjakan</div>
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-xl shadow-gray-200/40 flex flex-col justify-center items-center">
+            <div className="text-4xl font-black text-amber-500 mb-1">{attempted}</div>
+            <div className="text-sm font-bold text-gray-500 uppercase tracking-wider text-center">Dikerjakan</div>
           </div>
-          <div className="card-stat border border-hairline flex flex-col justify-center items-center">
-            <div className="display-lg text-semantic-success">{passed}</div>
-            <div className="body-strong text-ink-mute mt-2">Lulus Passing Grade</div>
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-xl shadow-gray-200/40 flex flex-col justify-center items-center">
+            <div className="text-4xl font-black text-emerald-500 mb-1">{passed}</div>
+            <div className="text-sm font-bold text-gray-500 uppercase tracking-wider text-center">Lulus KKM</div>
           </div>
         </div>
 
         {allTests.length === 0 ? (
-          <div className="text-center py-24 bg-canvas-cream rounded-xl border border-hairline">
-            <BookOpen className="w-16 h-16 text-primary mx-auto mb-6" />
-            <h3 className="heading-lg text-ink mb-3">Belum ada tryout tersedia</h3>
-            <p className="body-md text-ink-mute">Soal dan tryout sedang disiapkan.</p>
+          <div className="text-center py-24 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/40">
+            <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <BookOpen className="w-10 h-10 text-indigo-300" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Belum ada tryout tersedia</h3>
+            <p className="text-gray-500 max-w-md mx-auto mb-8">Admin sedang menyusun paket tryout terbaik untuk Anda. Silakan kembali lagi nanti atau gunakan menu pengaturan admin untuk mengisi data dummy.</p>
+            {userRole === 'admin' && (
+              <Link href="/admin/settings" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors">
+                Pergi ke Admin Settings
+              </Link>
+            )}
           </div>
         ) : (
           <>
-            <TestSection title="Tryout CPNS & PPPK" tests={cpnsTests} icon="🏛️" />
-            <TestSection title="Tryout UTBK / SNBT" tests={utbkTests} icon="🎓" />
+            <TestSection title="Tryout CPNS & PPPK" tests={cpnsTests} icon={<Trophy className="w-6 h-6" />} offset={0} />
+            <TestSection title="Tryout UTBK / SNBT" tests={utbkTests} icon={<BookOpen className="w-6 h-6" />} offset={cpnsTests.length} />
             {otherTests.length > 0 && (
-              <TestSection title="Tryout Lainnya" tests={otherTests} icon="📚" />
+              <TestSection title="Tryout Lainnya" tests={otherTests} icon={<LayoutList className="w-6 h-6" />} offset={cpnsTests.length + utbkTests.length} />
             )}
           </>
         )}
