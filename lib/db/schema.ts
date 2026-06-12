@@ -117,6 +117,8 @@ export const tests = pgTable(
     showResults: boolean('show_results').default(true),
     showAnswers: boolean('show_answers').default(false),
     isPublished: boolean('is_published').default(false),
+    price: integer('price'), // null means free/pro-only
+    originalPrice: integer('original_price'), // for strike-through discount display
     userId: text('userId').notNull(),
     createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
     updatedAt: timestamp('updatedAt', { mode: 'date' }).$defaultFn(() => new Date()),

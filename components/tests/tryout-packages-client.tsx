@@ -12,6 +12,8 @@ type TestType = {
   passingScore: number | null
   showResults: boolean | null
   categoryId: number | null
+  price?: number | null
+  originalPrice?: number | null
 }
 
 type BestResultsType = Record<number, { percentage: string | null; passed: boolean | null }>
@@ -161,11 +163,21 @@ export default function TryoutPackagesClient({
                   <h3 className="text-lg font-extrabold text-gray-900 leading-snug mb-1 line-clamp-2 min-h-[3rem]">
                     {test.title}
                   </h3>
-                  <div className="text-xl font-black text-indigo-600 mb-2">
-                    {isLocked ? (
-                      <span className="flex items-center gap-1.5 text-amber-500"><Lock className="w-5 h-5"/> Premium</span>
+                  <div className="mb-2">
+                    {test.price != null ? (
+                      <div className="flex flex-col">
+                        {test.originalPrice != null && test.originalPrice > test.price && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400 line-through">Rp {test.originalPrice.toLocaleString('id-ID')}</span>
+                            <span className="text-[10px] bg-red-100 text-red-600 font-bold px-1.5 py-0.5 rounded">Diskon</span>
+                          </div>
+                        )}
+                        <span className="text-xl font-black text-indigo-600">Rp {test.price.toLocaleString('id-ID')}</span>
+                      </div>
+                    ) : isLocked ? (
+                      <span className="flex items-center gap-1.5 text-amber-500 text-xl font-black"><Lock className="w-5 h-5"/> Premium</span>
                     ) : (
-                      'Gratis'
+                      <span className="text-xl font-black text-indigo-600">Gratis</span>
                     )}
                   </div>
 
@@ -196,21 +208,29 @@ export default function TryoutPackagesClient({
 
                   {/* Buttons */}
                   <div className="flex items-center gap-2 pt-4 border-t border-gray-100 mt-auto">
-                    <Link 
-                      href={isLocked ? '/choose-plan' : (userRole === 'public' ? '/sign-in' : `/tests/${test.id}/take`)}
-                      className={`flex-1 text-center py-2.5 rounded-xl font-bold text-sm transition-all ${
-                        isLocked 
-                          ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                          : 'bg-[#217b9b] text-white hover:bg-[#19637c] shadow-md shadow-[#217b9b]/20'
-                      }`}
-                    >
-                      {isLocked ? 'Buka Kunci Premium' : (userRole === 'public' ? 'Masuk untuk Memulai ➔' : (isAttempted ? 'Kerjakan Ulang ➔' : 'Lihat Detail ➔'))}
-                    </Link>
-                    {!isLocked && (
-                      <button className="w-10 h-10 rounded-xl border border-gray-200 text-gray-500 flex items-center justify-center hover:border-[#217b9b] hover:text-[#217b9b] hover:bg-[#217b9b]/5 transition-all shrink-0">
-                        <ShoppingCart className="w-4 h-4" />
-                      </button>
+                    {test.price != null ? (
+                       <Link 
+                         href="/cart"
+                         className="flex-1 text-center py-2.5 rounded-xl font-bold text-sm bg-[#217b9b] text-white hover:bg-[#19637c] shadow-md shadow-[#217b9b]/20 transition-all"
+                       >
+                         Beli Sekarang ➔
+                       </Link>
+                    ) : (
+                      <Link 
+                        href={isLocked ? '/choose-plan' : (userRole === 'public' ? '/sign-in' : `/tests/${test.id}/take`)}
+                        className={`flex-1 text-center py-2.5 rounded-xl font-bold text-sm transition-all ${
+                          isLocked 
+                            ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                            : 'bg-[#217b9b] text-white hover:bg-[#19637c] shadow-md shadow-[#217b9b]/20'
+                        }`}
+                      >
+                        {isLocked ? 'Buka Kunci Premium' : (userRole === 'public' ? 'Masuk untuk Memulai ➔' : (isAttempted ? 'Kerjakan Ulang ➔' : 'Lihat Detail ➔'))}
+                      </Link>
                     )}
+                    
+                    <button className="w-10 h-10 rounded-xl border border-gray-200 text-[#217b9b] flex items-center justify-center hover:border-[#217b9b] hover:bg-[#217b9b]/5 transition-all shrink-0">
+                      <ShoppingCart className="w-4 h-4" />
+                    </button>
                   </div>
 
                 </div>

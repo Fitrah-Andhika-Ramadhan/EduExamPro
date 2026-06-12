@@ -38,6 +38,13 @@ export default async function TestsPage() {
       .from(tests)
       .where(eq(tests.isPublished, true))
       .orderBy(desc(tests.createdAt))
+      
+    // TODO: Remove this mock when admin panel supports pricing
+    allTests = allTests.map((t, idx) => ({
+      ...t,
+      price: idx % 2 === 0 ? 150000 : 99000,
+      originalPrice: idx % 2 === 0 ? 250000 : 150000,
+    }))
 
     if (userId) {
       userResults = await db
