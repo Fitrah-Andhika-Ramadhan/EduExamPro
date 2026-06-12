@@ -2,6 +2,7 @@ import React from 'react';
 import { db } from '@/lib/db';
 import { user, tests, results } from '@/lib/db/schema';
 import { count, eq, desc } from 'drizzle-orm';
+import UserManagementClient from '@/components/admin/user-management-client';
 
 export default async function AdminDashboardPage() {
   const usersCountResult = await db.select({ count: count() }).from(user);
@@ -18,7 +19,17 @@ export default async function AdminDashboardPage() {
   
   const avgPassRate = totalAttempts > 0 ? ((passedCount / totalAttempts) * 100).toFixed(1) : '0.0';
 
-  const recentUsers = await db.select().from(user).orderBy(desc(user.createdAt)).limit(3);
+  const allUsers = await db.select().from(user).orderBy(desc(user.createdAt));
+  
+  // Need to pass stringified/plain object due to Date objects in Next.js Server->Client transition
+  const serializedUsers = allUsers.map(u => ({
+    id: u.id,
+    name: u.name || '',
+    email: u.email || '',
+    role: u.role,
+    createdAt: u.createdAt ? u.createdAt.toISOString() : new Date().toISOString()
+  }));
+
   return (
     <div className="p-8 max-w-[1440px] mx-auto w-full space-y-8">
       {/* Welcome Header */}
@@ -94,62 +105,7 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* User Management Summary */}
         <section className="lg:col-span-2 bento-card flex flex-col">
-          <div className="p-6 border-b border-outline-variant flex justify-between items-center">
-            <h4 className="font-headline-sm text-headline-sm text-primary">Manajemen Pengguna Cepat</h4>
-            <div className="flex gap-2">
-              <button className="bg-surface-container-high text-on-surface-variant font-semibold px-4 py-1.5 rounded-lg text-label-md hover:bg-primary hover:text-white transition-all flex items-center gap-1">
-                <span className="material-symbols-outlined text-[18px]">upload_file</span>
-                Import CSV
-              </button>
-              <button className="bg-secondary text-white font-semibold px-4 py-1.5 rounded-lg text-label-md hover:shadow-md transition-all flex items-center gap-1">
-                <span className="material-symbols-outlined text-[18px]">person_add</span>
-                Tambah Baru
-              </button>
-            </div>
-          </div>
-          <div className="p-6 bg-surface-container-low flex gap-4">
-            <button className="px-4 py-1 rounded-full bg-primary text-white text-label-md font-semibold">Semua</button>
-            <button className="px-4 py-1 rounded-full bg-white border border-outline-variant text-on-surface-variant text-label-md font-medium hover:bg-primary-container transition-colors">Siswa</button>
-            <button className="px-4 py-1 rounded-full bg-white border border-outline-variant text-on-surface-variant text-label-md font-medium hover:bg-primary-container transition-colors">Instruktur</button>
-            <button className="px-4 py-1 rounded-full bg-white border border-outline-variant text-on-surface-variant text-label-md font-medium hover:bg-primary-container transition-colors">Staff</button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-surface-container text-on-surface-variant text-label-md border-b border-outline-variant">
-                <tr>
-                  <th className="px-6 py-4">Nama Pengguna</th>
-                  <th className="px-6 py-4">Peran</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Aktivitas Terakhir</th>
-                  <th className="px-6 py-4"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant">
-                {recentUsers.map(u => (
-                  <tr key={u.id} className="hover:bg-surface-container-low transition-colors">
-                    <td className="px-6 py-4 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold text-xs">{u.name?.substring(0,2).toUpperCase() || 'U'}</div>
-                      <div>
-                        <p className="font-label-md text-label-md text-primary font-bold">{u.name || 'User'}</p>
-                        <p className="text-[10px] text-outline">{u.email}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-body-sm text-on-surface-variant">{u.role === 'admin' ? 'Admin' : 'Siswa'}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-0.5 bg-green-50 text-success-green text-[10px] font-bold rounded uppercase border border-success-green/20">Aktif</span>
-                    </td>
-                    <td className="px-6 py-4 text-body-sm text-outline">{u.createdAt ? new Date(u.createdAt).toLocaleDateString('id-ID') : '-'}</td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="material-symbols-outlined text-outline hover:text-primary transition-colors">more_vert</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-auto p-6 flex justify-center">
-            <button className="text-secondary font-semibold text-label-md hover:underline">Lihat Seluruh Database Pengguna</button>
-          </div>
+          <UserManagementClient initialUsers={serializedUsers} />
         </section>
 
         {/* License & Subscription Status */}

@@ -156,6 +156,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, message: 'Dummy data berhasil dibuat!' })
 
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 })
+    console.error('SEED ERROR:', err)
+    return NextResponse.json({ success: false, error: err.message || 'Unknown database error occurred' }, { status: 500 })
   }
 }
