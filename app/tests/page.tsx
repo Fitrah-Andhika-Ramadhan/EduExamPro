@@ -21,26 +21,32 @@ export default async function TestsPage() {
   // @ts-ignore
   const userPlan = session?.user?.plan || 'free'
 
-  let allTests = await db
-    .select({
-      id: tests.id,
-      title: tests.title,
-      description: tests.description,
-      durationMinutes: tests.durationMinutes,
-      passingScore: tests.passingScore,
-      showResults: tests.showResults,
-      categoryId: tests.categoryId,
-    })
-    .from(tests)
-    .where(eq(tests.isPublished, true))
-    .orderBy(desc(tests.createdAt))
-
+  let allTests: any[] = []
   let userResults: any[] = []
-  if (userId) {
-    userResults = await db
-      .select({ testId: results.testId, percentage: results.percentage, passed: results.passed })
-      .from(results)
-      .where(eq(results.userId, userId))
+
+  try {
+    allTests = await db
+      .select({
+        id: tests.id,
+        title: tests.title,
+        description: tests.description,
+        durationMinutes: tests.durationMinutes,
+        passingScore: tests.passingScore,
+        showResults: tests.showResults,
+        categoryId: tests.categoryId,
+      })
+      .from(tests)
+      .where(eq(tests.isPublished, true))
+      .orderBy(desc(tests.createdAt))
+
+    if (userId) {
+      userResults = await db
+        .select({ testId: results.testId, percentage: results.percentage, passed: results.passed })
+        .from(results)
+        .where(eq(results.userId, userId))
+    }
+  } catch (err) {
+    console.error('Failed to load tryout data from DB:', err)
   }
 
   const bestResults: Record<number, { percentage: string | null; passed: boolean | null }> = {}
