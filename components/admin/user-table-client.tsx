@@ -1,8 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Edit, Trash2, UserCog, User, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Search, Trash2, UserCog, User, AlertCircle, CheckCircle2, Download } from 'lucide-react'
 import { deleteUser, updateUserRole } from '@/app/actions/admin'
+import { exportUsersAction } from '@/app/actions/export'
+
+function downloadBase64(base64: string, filename: string) {
+  const link = document.createElement('a')
+  link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`
+  link.download = filename
+  link.click()
+}
 
 type UserData = {
   id: string

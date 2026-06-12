@@ -23,6 +23,7 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
 
     try {
       if (isSignUp) {
+        // Step 1: Create account in DB
         const { signUp } = await import('@/app/actions/auth')
         const result = await signUp(email, password, name)
         if (result.error) {
@@ -30,10 +31,12 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
           setLoading(false)
           return
         }
+        // Step 2: Auto sign-in after registration
         const signInResult = await authClient.signIn.email({ email, password })
         if (signInResult.error) {
-          setError(signInResult.error)
+          setError('Akun berhasil dibuat! Silakan login secara manual.')
           setLoading(false)
+          router.push('/sign-in')
           return
         }
         router.push('/choose-plan')
@@ -41,11 +44,20 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
       } else {
         const result = await authClient.signIn.email({ email, password })
         if (result.error) {
-          setError(result.error)
+          setError('Email atau kata sandi tidak valid. Silakan periksa kembali.')
           setLoading(false)
           return
         }
-        router.push('/choose-plan')
+        // Get session to redirect based on role
+        const { getSession } = await import('next-auth/react')
+        const session = await getSession()
+        // @ts-ignore
+        const role = session?.user?.role
+        if (role === 'admin') {
+          router.push('/admin/dashboard')
+        } else {
+          router.push('/dashboard')
+        }
         router.refresh()
       }
     } catch (err: any) {
