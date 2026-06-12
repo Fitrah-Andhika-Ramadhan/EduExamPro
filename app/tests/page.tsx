@@ -38,14 +38,45 @@ export default async function TestsPage() {
       .from(tests)
       .where(eq(tests.isPublished, true))
       .orderBy(desc(tests.createdAt))
-      
-    // TODO: Remove this mock when admin panel supports pricing
+  } catch (err) {
+    console.error('Failed to load tryout data from DB:', err)
+  }
+
+  // TODO: Remove this mock when admin panel supports pricing & DB is connected
+  if (allTests.length === 0) {
+    allTests = [
+      {
+        id: 101,
+        title: 'Paket Tryout SKD CPNS Lengkap (Sistem CAT)',
+        description: 'Simulasi lengkap TWK, TIU, dan TKP sesuai standar BKN terbaru dengan sistem CAT real-time.',
+        durationMinutes: 100,
+        passingScore: 311,
+        showResults: true,
+        categoryId: 1,
+        price: 99000,
+        originalPrice: 150000,
+      },
+      {
+        id: 102,
+        title: 'Simulasi BUMN (Tes Akhlak & TKD)',
+        description: 'Latihan soal-soal penalaran, verbal, dan core values BUMN yang sering keluar.',
+        durationMinutes: 90,
+        passingScore: 65,
+        showResults: true,
+        categoryId: 2,
+        price: 150000,
+        originalPrice: 200000,
+      }
+    ]
+  } else {
     allTests = allTests.map((t, idx) => ({
       ...t,
       price: idx % 2 === 0 ? 150000 : 99000,
       originalPrice: idx % 2 === 0 ? 250000 : 150000,
     }))
+  }
 
+  try {
     if (userId) {
       userResults = await db
         .select({ testId: results.testId, percentage: results.percentage, passed: results.passed })
