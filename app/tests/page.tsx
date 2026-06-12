@@ -1,8 +1,8 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
-import { tests, results } from '@/lib/db/schema'
-import { eq, desc } from 'drizzle-orm'
+import { tests, results, userPurchases } from '@/lib/db/schema'
+import { eq, desc, and } from 'drizzle-orm'
 import Link from 'next/link'
 import StudentLayout from '@/components/layout/student-layout'
 import PublicLayout from '@/components/layout/public-layout'
@@ -23,6 +23,7 @@ export default async function TestsPage() {
 
   let allTests: any[] = []
   let userResults: any[] = []
+  let myPurchases = new Set<string>()
 
   try {
     allTests = await db
@@ -82,9 +83,12 @@ export default async function TestsPage() {
         .select({ testId: results.testId, percentage: results.percentage, passed: results.passed })
         .from(results)
         .where(eq(results.userId, userId))
+
+      const purchases = await db.select({ itemId: userPurchases.itemId }).from(userPurchases).where(and(eq(userPurchases.userId, userId), eq(userPurchases.itemType, 'test')))
+      purchases.forEach(p => myPurchases.add(p.itemId))
     }
   } catch (err) {
-    console.error('Failed to load tryout data from DB:', err)
+    console.error('Failed to load user data from DB:', err)
   }
 
   const bestResults: Record<number, { percentage: string | null; passed: boolean | null }> = {}
@@ -102,18 +106,12 @@ export default async function TestsPage() {
 
   return (
     <LayoutComponent>
-      {/* Modern Header matching referensi tapi lebih sleek */}
-      <div className="relative pt-12 pb-24 overflow-hidden bg-gray-50">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#217b9b]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#217b9b]/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">Katalog Ujian <span className="text-[#217b9b]">Lebih Pasti</span></h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto font-medium">Bukan cuma ngerjain soal, tapi tau sampai mana kemampuanmu. Pilih paket tryout yang pas sama targetmu, simulasinya dibikin mirip ujian aslinya.</p>
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-10">
+        <div className="mb-10 text-center sm:text-left">
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Katalog Tryout</h1>
+          <p className="text-gray-500">Pilih dan ikuti tryout untuk mengukur kemampuan Anda secara real-time.</p>
         </div>
-      </div>
 
-      <main className="-mt-10 relative z-20">
         {allTests.length === 0 ? (
           <div className="max-w-3xl mx-auto text-center py-24 bg-white rounded-3xl border border-gray-100 shadow-xl">
             <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -133,9 +131,10 @@ export default async function TestsPage() {
             bestResults={bestResults} 
             userPlan={userPlan} 
             userRole={userRole} 
+            myPurchases={Array.from(myPurchases)}
           />
         )}
-      </main>
+      </div>
     </LayoutComponent>
   )
 }

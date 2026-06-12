@@ -5,8 +5,8 @@ import PublicLayout from '@/components/layout/public-layout'
 import Link from 'next/link'
 import { ShoppingCart, Check, BookOpen, Video, FileText, PlayCircle, Lock } from 'lucide-react'
 import { db } from '@/lib/db'
-import { settings } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { settings, userPurchases } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,6 +43,7 @@ export default async function CoursesPage() {
   const session = await auth()
   
   const isPublic = !session?.user?.id
+  const userId = session?.user?.id
   const userName = session?.user?.name ?? 'Pengguna'
   // @ts-ignore
   const userPlan = session?.user?.plan || 'free'
@@ -50,6 +51,8 @@ export default async function CoursesPage() {
   const userRole = session?.user?.role || 'public'
 
   let syllabus = DEFAULT_COURSES
+  let myPurchases = new Set<string>()
+
   try {
     const records = await db.select().from(settings).where(eq(settings.id, 'courses_config'))
     if (records.length > 0) {
@@ -60,6 +63,11 @@ export default async function CoursesPage() {
         price: p.price ?? (idx % 2 === 0 ? 199000 : 99000),
         originalPrice: p.originalPrice ?? (idx % 2 === 0 ? 299000 : 150000),
       }))
+    }
+
+    if (userId) {
+      const purchases = await db.select({ itemId: userPurchases.itemId }).from(userPurchases).where(and(eq(userPurchases.userId, userId), eq(userPurchases.itemType, 'course')))
+      purchases.forEach(p => myPurchases.add(p.itemId))
     }
   } catch (err) {
     console.error('Failed to load courses', err)
@@ -85,7 +93,8 @@ export default async function CoursesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {syllabus.filter((s: any) => s.isPublished !== false).map((course: any, idx: number) => {
-              const isLocked = userPlan === 'free' && userRole !== 'admin'
+              const isLocked = userPlan === 'free' && userRole !== 'admin' && !myPurchases.has(String(course.id))
+              const isPurchased = myPurchases.has(String(course.id)) || userPlan === 'pro' || userRole === 'admin'
               
               return (
                 <div key={course.id || idx} className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col group hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 hover:-translate-y-1">
@@ -146,7 +155,7 @@ export default async function CoursesPage() {
 
                     {/* Buttons */}
                     <div className="flex items-center gap-2 pt-4 border-t border-gray-100 mt-auto">
-                      {course.price != null ? (
+                      {!isPurchased && course.price != null ? (
                          <Link 
                            href="/cart"
                            className="flex-1 text-center py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-600/20 transition-all"
@@ -166,9 +175,11 @@ export default async function CoursesPage() {
                         </Link>
                       )}
                       
-                      <button className="w-10 h-10 rounded-xl border border-gray-200 text-indigo-600 flex items-center justify-center hover:border-indigo-600 hover:bg-indigo-50 transition-all shrink-0">
-                        <ShoppingCart className="w-4 h-4" />
-                      </button>
+                      {!isPurchased && (
+                        <button className="w-10 h-10 rounded-xl border border-gray-200 text-indigo-600 flex items-center justify-center hover:border-indigo-600 hover:bg-indigo-50 transition-all shrink-0">
+                          <ShoppingCart className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

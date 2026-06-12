@@ -216,3 +216,19 @@ export const settings = pgTable(
     updatedAt: timestamp('updatedAt', { mode: 'date' }).$defaultFn(() => new Date()),
   }
 )
+
+export const userPurchases = pgTable(
+  'user_purchases',
+  {
+    id: serial('id').primaryKey(),
+    userId: text('userId').notNull().references(() => user.id),
+    itemType: varchar('item_type', { length: 50 }).notNull(), // 'test' or 'course'
+    itemId: varchar('item_id', { length: 255 }).notNull(), // test.id or course.id (stringified)
+    transactionId: text('transactionId'), // midtrans transaction ID
+    createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    userIdx: index('idx_purchases_user').on(table.userId),
+    itemIdx: index('idx_purchases_item').on(table.itemId),
+  })
+)

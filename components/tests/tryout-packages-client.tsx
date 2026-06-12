@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Search, ShoppingCart, Check, SlidersHorizontal, Lock } from 'lucide-react'
+import { Search, ShoppingCart, Check, SlidersHorizontal, Lock, BookOpen } from 'lucide-react'
 
 type TestType = {
   id: number
@@ -18,17 +19,23 @@ type TestType = {
 
 type BestResultsType = Record<number, { percentage: string | null; passed: boolean | null }>
 
+type TryoutPackagesClientProps = {
+  allTests: TestType[]
+  bestResults: BestResultsType
+  userPlan: string
+  userRole: string
+  myPurchases?: string[]
+}
+
 export default function TryoutPackagesClient({ 
   allTests, 
   bestResults,
   userPlan,
-  userRole
-}: { 
-  allTests: TestType[],
-  bestResults: BestResultsType,
-  userPlan: string,
-  userRole: string
-}) {
+  userRole,
+  myPurchases = []
+}: TryoutPackagesClientProps) {
+  const router = useRouter()
+  const purchasesSet = new Set(myPurchases)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState('Semua')
 
@@ -122,12 +129,13 @@ export default function TryoutPackagesClient({
             const badgeInfo = getBadgeInfo(test.title)
             
             // Limit first 2 tests for free users
-            const isLocked = userPlan === 'free' && userRole !== 'admin' && allTests.findIndex(t => t.id === test.id) >= 2
+            const isLocked = userPlan === 'free' && userRole !== 'admin' && allTests.findIndex(t => t.id === test.id) >= 2 && !purchasesSet.has(String(test.id))
+            const isPurchased = purchasesSet.has(String(test.id)) || userPlan === 'pro' || userRole === 'admin'
 
             return (
               <div 
                 key={test.id} 
-                className="group relative bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col h-full hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1.5 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+                className="group relative bg-white rounded-[1.5rem] border border-gray-200 overflow-hidden flex flex-col h-full hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1.5 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
                 style={{ animationFillMode: 'both', animationDelay: `${index * 50}ms` }}
               >
                 {/* Header Image with Zoom Effect */}
@@ -140,8 +148,13 @@ export default function TryoutPackagesClient({
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   {isAttempted && (
-                    <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm">
-                      SUDAH DIKERJAKAN
+                    <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm flex items-center gap-1">
+                      <Check className="w-3 h-3"/> SUDAH DIKERJAKAN
+                    </div>
+                  )}
+                  {isLocked && !isPurchased && (
+                    <div className="absolute top-3 left-3 z-20 bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm flex items-center gap-1">
+                      <Lock className="w-3 h-3"/> PREMIUM
                     </div>
                   )}
                 </div>
@@ -208,7 +221,7 @@ export default function TryoutPackagesClient({
 
                   {/* Buttons */}
                   <div className="flex items-center gap-2 pt-4 border-t border-gray-100 mt-auto">
-                    {test.price != null ? (
+                    {!isPurchased && test.price != null ? (
                        <Link 
                          href="/cart"
                          className="flex-1 text-center py-2.5 rounded-xl font-bold text-sm bg-[#217b9b] text-white hover:bg-[#19637c] shadow-md shadow-[#217b9b]/20 transition-all"
@@ -228,9 +241,11 @@ export default function TryoutPackagesClient({
                       </Link>
                     )}
                     
-                    <button className="w-10 h-10 rounded-xl border border-gray-200 text-[#217b9b] flex items-center justify-center hover:border-[#217b9b] hover:bg-[#217b9b]/5 transition-all shrink-0">
-                      <ShoppingCart className="w-4 h-4" />
-                    </button>
+                    {!isPurchased && (
+                      <button className="w-10 h-10 rounded-xl border border-gray-200 text-[#217b9b] flex items-center justify-center hover:border-[#217b9b] hover:bg-[#217b9b]/5 transition-all shrink-0">
+                        <ShoppingCart className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
 
                 </div>
