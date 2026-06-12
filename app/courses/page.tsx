@@ -49,19 +49,26 @@ export default async function CoursesPage() {
         </div>
 
         <div className="space-y-8">
-          {syllabus.map((section: any) => (
+          {syllabus.filter((s: any) => s.isPublished !== false).map((section: any) => (
             <div key={section.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-white">
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 mb-1">{section.title}</h2>
-                  <div className="flex items-center gap-3">
-                    <div className="text-sm font-semibold text-gray-500">{section.progress}% Selesai</div>
-                    <div className="w-48 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${section.progress}%` }} />
+              <div className="p-6 border-b border-gray-50 bg-white">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">{section.title}</h2>
+                    {section.description && (
+                      <p className="text-sm text-gray-500 mb-4 leading-relaxed">{section.description}</p>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <div className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">{section.progress}% Selesai</div>
+                      <div className="w-48 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${section.progress}%` }} />
+                      </div>
                     </div>
                   </div>
+                  <div className="shrink-0 bg-indigo-50 p-3 rounded-2xl text-indigo-500">
+                    <BookOpen className="w-8 h-8" />
+                  </div>
                 </div>
-                <BookOpen className="w-8 h-8 text-indigo-100" />
               </div>
               
               <div className="divide-y divide-gray-50 bg-gray-50/30">

@@ -10,6 +10,8 @@ const DEFAULT_COURSES = [
   {
     id: 1,
     title: 'Materi TWK (Tes Wawasan Kebangsaan)',
+    description: 'Kumpulan materi untuk Tes Wawasan Kebangsaan yang mencakup Pancasila, UUD 1945, Bhinneka Tunggal Ika, dan NKRI.',
+    isPublished: true,
     progress: 40,
     topics: [
       { title: 'Pancasila & Pengamalannya', type: 'live', isCompleted: true, isPremium: false, url: '' },
@@ -21,6 +23,8 @@ const DEFAULT_COURSES = [
   {
     id: 2,
     title: 'Materi TIU (Tes Intelegensia Umum)',
+    description: 'Pelajari trik cepat menjawab soal penalaran numerik, verbal, dan figural.',
+    isPublished: true,
     progress: 15,
     topics: [
       { title: 'Kemampuan Verbal (Analogi, Silogisme)', type: 'video', isCompleted: true, isPremium: false, url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
@@ -32,6 +36,8 @@ const DEFAULT_COURSES = [
   {
     id: 3,
     title: 'Materi TKP (Tes Karakteristik Pribadi)',
+    description: 'Modul ini berisi simulasi kasus pelayanan publik, sosial budaya, dan profesionalisme kerja.',
+    isPublished: true,
     progress: 0,
     topics: [
       { title: 'Pelayanan Publik & Jejaring Kerja', type: 'live', isCompleted: false, isPremium: false, url: '' },
