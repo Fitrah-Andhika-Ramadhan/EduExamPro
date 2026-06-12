@@ -1,12 +1,19 @@
 "use client"
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSidebar } from './SidebarContext';
+import { authClient } from '@/lib/auth-client';
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isMobileOpen, setMobileOpen } = useSidebar();
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    router.push('/sign-in');
+  };
 
   const links = [
     { href: '/admin/dashboard', icon: 'dashboard', label: 'Dashboard' },
@@ -63,10 +70,17 @@ export function AdminSidebar() {
             );
           })}
         </nav>
-        <div className="px-4 mt-4 shrink-0">
+        <div className="px-4 mt-4 shrink-0 flex flex-col gap-2">
           <button className="w-full py-3 bg-secondary text-white rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-opacity-90 active:scale-95 transition-all">
             <span className="material-symbols-outlined">add_circle</span>
             <span>Laporan Baru</span>
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="w-full py-3 bg-red-50 text-red-600 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-red-100 active:scale-95 transition-all"
+          >
+            <span className="material-symbols-outlined">logout</span>
+            <span>Keluar Sistem</span>
           </button>
         </div>
       </aside>
