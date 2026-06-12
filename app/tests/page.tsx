@@ -5,6 +5,7 @@ import { tests, results } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import Link from 'next/link'
 import StudentLayout from '@/components/layout/student-layout'
+import PublicLayout from '@/components/layout/public-layout'
 import { BookOpen } from 'lucide-react'
 import TryoutPackagesClient from '@/components/tests/tryout-packages-client'
 
@@ -12,13 +13,13 @@ export const dynamic = 'force-dynamic'
 
 export default async function TestsPage() {
   const session = await auth()
-  if (!session?.user?.id) redirect('/sign-in')
-
-  const userId = session.user.id
+  
+  const isPublic = !session?.user?.id
+  const userId = session?.user?.id || null
   // @ts-ignore
-  const userRole = session.user.role || 'user'
+  const userRole = session?.user?.role || 'public'
   // @ts-ignore
-  const userPlan = session.user.plan || 'free'
+  const userPlan = session?.user?.plan || 'free'
 
   let allTests = await db
     .select({
@@ -34,10 +35,13 @@ export default async function TestsPage() {
     .where(eq(tests.isPublished, true))
     .orderBy(desc(tests.createdAt))
 
-  const userResults = await db
-    .select({ testId: results.testId, percentage: results.percentage, passed: results.passed })
-    .from(results)
-    .where(eq(results.userId, userId))
+  let userResults: any[] = []
+  if (userId) {
+    userResults = await db
+      .select({ testId: results.testId, percentage: results.percentage, passed: results.passed })
+      .from(results)
+      .where(eq(results.userId, userId))
+  }
 
   const bestResults: Record<number, { percentage: string | null; passed: boolean | null }> = {}
   userResults.forEach(r => {
@@ -49,8 +53,11 @@ export default async function TestsPage() {
     }
   })
 
+  // @ts-ignore
+  const LayoutComponent = isPublic ? PublicLayout : ({ children }) => <StudentLayout activePath="/tests">{children}</StudentLayout>
+
   return (
-    <StudentLayout activePath="/tests">
+    <LayoutComponent>
       {/* Modern Header matching referensi tapi lebih sleek */}
       <div className="relative pt-12 pb-24 overflow-hidden bg-gray-50">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#217b9b]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -85,6 +92,6 @@ export default async function TestsPage() {
           />
         )}
       </main>
-    </StudentLayout>
+    </LayoutComponent>
   )
 }

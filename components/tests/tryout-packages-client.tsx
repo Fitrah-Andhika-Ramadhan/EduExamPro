@@ -197,14 +197,14 @@ export default function TryoutPackagesClient({
                   {/* Buttons */}
                   <div className="flex items-center gap-2 pt-4 border-t border-gray-100 mt-auto">
                     <Link 
-                      href={isLocked ? '/choose-plan' : `/tests/${test.id}/take`}
+                      href={isLocked ? '/choose-plan' : (userRole === 'public' ? '/sign-in' : `/tests/${test.id}/take`)}
                       className={`flex-1 text-center py-2.5 rounded-xl font-bold text-sm transition-all ${
                         isLocked 
                           ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                           : 'bg-[#217b9b] text-white hover:bg-[#19637c] shadow-md shadow-[#217b9b]/20'
                       }`}
                     >
-                      {isLocked ? 'Buka Kunci Premium' : (isAttempted ? 'Kerjakan Ulang ➔' : 'Lihat Detail ➔')}
+                      {isLocked ? 'Buka Kunci Premium' : (userRole === 'public' ? 'Masuk untuk Memulai ➔' : (isAttempted ? 'Kerjakan Ulang ➔' : 'Lihat Detail ➔'))}
                     </Link>
                     {!isLocked && (
                       <button className="w-10 h-10 rounded-xl border border-gray-200 text-gray-500 flex items-center justify-center hover:border-[#217b9b] hover:text-[#217b9b] hover:bg-[#217b9b]/5 transition-all shrink-0">

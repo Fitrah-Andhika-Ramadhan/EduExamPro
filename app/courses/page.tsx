@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import StudentLayout from '@/components/layout/student-layout'
+import PublicLayout from '@/components/layout/public-layout'
 import Link from 'next/link'
 import { BookOpen, Video, FileText, CheckCircle, PlayCircle, ChevronRight, LockIcon } from 'lucide-react'
 import { db } from '@/lib/db'
@@ -22,13 +23,13 @@ const DEFAULT_COURSES = [
 
 export default async function CoursesPage() {
   const session = await auth()
-  if (!session?.user?.id) redirect('/sign-in')
   
-  const userName = session.user.name ?? 'Siswa'
+  const isPublic = !session?.user?.id
+  const userName = session?.user?.name ?? 'Pengguna'
   // @ts-ignore
-  const userPlan = session.user.plan || 'free'
+  const userPlan = session?.user?.plan || 'free'
   // @ts-ignore
-  const userRole = session.user.role || 'user'
+  const userRole = session?.user?.role || 'public'
 
   let syllabus = DEFAULT_COURSES
   try {
@@ -40,8 +41,11 @@ export default async function CoursesPage() {
     console.error('Failed to load courses', err)
   }
 
+  // @ts-ignore
+  const LayoutComponent = isPublic ? PublicLayout : ({ children }) => <StudentLayout activePath="/courses">{children}</StudentLayout>
+
   return (
-    <StudentLayout activePath="/courses">
+    <LayoutComponent>
       <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-10">
         <div className="mb-10">
           <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Silabus Pembelajaran</h1>
@@ -58,12 +62,14 @@ export default async function CoursesPage() {
                     {section.description && (
                       <p className="text-sm text-gray-500 mb-4 leading-relaxed">{section.description}</p>
                     )}
-                    <div className="flex items-center gap-3">
-                      <div className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">{section.progress}% Selesai</div>
-                      <div className="w-48 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${section.progress}%` }} />
+                    {!isPublic && (
+                      <div className="flex items-center gap-3">
+                        <div className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">{section.progress}% Selesai</div>
+                        <div className="w-48 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${section.progress}%` }} />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                   <div className="shrink-0 bg-indigo-50 p-3 rounded-2xl text-indigo-500">
                     <BookOpen className="w-8 h-8" />
@@ -87,9 +93,9 @@ export default async function CoursesPage() {
 
                   return (
                     // @ts-ignore
-                    <Wrapper href={href} key={idx} className={`p-4 sm:px-6 flex items-center gap-4 hover:bg-gray-50 transition-colors ${locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
+                    <Wrapper href={isPublic ? '/sign-in' : href} key={idx} className={`p-4 sm:px-6 flex items-center gap-4 hover:bg-gray-50 transition-colors ${locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
                       <div className="shrink-0">
-                        {topic.isCompleted ? (
+                        {topic.isCompleted && !isPublic ? (
                           <CheckCircle className="w-6 h-6 text-emerald-500" />
                         ) : topic.type === 'video' ? (
                           <PlayCircle className="w-6 h-6 text-indigo-300" />
@@ -144,6 +150,6 @@ export default async function CoursesPage() {
           </div>
         )}
       </div>
-    </StudentLayout>
+    </LayoutComponent>
   )
 }
