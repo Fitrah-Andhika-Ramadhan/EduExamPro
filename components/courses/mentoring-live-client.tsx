@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { MicOff, VideoOff, Hand, Volume2, MonitorUp, Maximize, Settings, Send, Video as VideoIcon, Users, MessageSquare } from 'lucide-react'
 
-export default function MentoringLiveClient({ topicId }: { topicId: string }) {
+export default function MentoringLiveClient({ topicTitle, courseTitle }: { topicTitle: string, courseTitle: string }) {
   const [messages, setMessages] = useState([
     { id: 1, sender: 'Sarah M.', time: '14:32', text: 'Great explanation of React hooks!', isInstructor: false },
     { id: 2, sender: 'Dr. Johnson', time: '14:33', text: 'Thank you! Any questions so far?', isInstructor: true },
@@ -128,8 +128,8 @@ export default function MentoringLiveClient({ topicId }: { topicId: string }) {
         <div className="h-16 bg-[#1f2937] border-t border-white/5 flex items-center justify-between px-6 z-20">
           <div className="flex items-center gap-3 text-sm">
             <span className="text-gray-400">Session:</span>
-            <span className="font-semibold text-white">Advanced React Patterns</span>
-            <span className="px-3 py-1 bg-white/5 rounded-full text-xs font-mono text-indigo-300 border border-white/10">Chapter 3: Custom Hooks</span>
+            <span className="font-semibold text-white truncate max-w-xs">{courseTitle}</span>
+            <span className="px-3 py-1 bg-white/5 rounded-full text-xs font-mono text-indigo-300 border border-white/10 truncate max-w-[200px]">{topicTitle}</span>
           </div>
           <Link href="/courses" className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-red-500/20">
             Leave Session

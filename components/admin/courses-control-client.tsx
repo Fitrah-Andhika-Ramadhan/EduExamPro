@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Save, Plus, Trash2, GripVertical, CheckCircle2, AlertCircle } from 'lucide-react'
 
-type Topic = { title: string; type: string; isCompleted: boolean; isPremium: boolean }
+type Topic = { title: string; type: string; isCompleted: boolean; isPremium: boolean; url?: string }
 type Course = { id: number; title: string; progress: number; topics: Topic[] }
 
 export default function CoursesControlClient() {
@@ -55,7 +55,7 @@ export default function CoursesControlClient() {
 
   const addTopic = (courseIdx: number) => {
     const newCourses = [...courses]
-    newCourses[courseIdx].topics.push({ title: 'Topik Baru', type: 'video', isCompleted: false, isPremium: false })
+    newCourses[courseIdx].topics.push({ title: 'Topik Baru', type: 'video', isCompleted: false, isPremium: false, url: '' })
     setCourses(newCourses)
   }
 
@@ -121,7 +121,8 @@ export default function CoursesControlClient() {
 
               <div className="space-y-2">
                 {course.topics.map((topic, tIdx) => (
-                  <div key={tIdx} className="flex items-center gap-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
+                  <div key={tIdx} className="mb-3">
+                  <div className="flex items-center gap-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
                     <GripVertical className="w-4 h-4 text-gray-300 cursor-move shrink-0" />
                     
                     <input 
@@ -136,7 +137,8 @@ export default function CoursesControlClient() {
                       onChange={e => updateTopic(cIdx, tIdx, 'type', e.target.value)}
                       className="text-xs border border-gray-200 rounded px-2 py-1.5 outline-none bg-gray-50"
                     >
-                      <option value="video">Video</option>
+                      <option value="video">Video Materi</option>
+                      <option value="live">Live Mentoring</option>
                       <option value="document">PDF/Doc</option>
                       <option value="quiz">Kuis</option>
                     </select>
@@ -151,9 +153,21 @@ export default function CoursesControlClient() {
                       Premium
                     </label>
 
-                    <button onClick={() => removeTopic(cIdx, tIdx)} className="text-red-500 p-1 hover:bg-red-50 rounded">
+                    <button onClick={() => removeTopic(cIdx, tIdx)} className="text-red-500 p-1 hover:bg-red-50 rounded shrink-0">
                       <Trash2 className="w-4 h-4" />
                     </button>
+                  </div>
+                  {(topic.type === 'video' || topic.type === 'document' || topic.type === 'live') && (
+                    <div className="ml-8 mt-1 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[14px] text-gray-400">link</span>
+                      <input 
+                        value={topic.url || ''}
+                        onChange={e => updateTopic(cIdx, tIdx, 'url', e.target.value)}
+                        placeholder="URL Media (Link YouTube / Link PDF)"
+                        className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 outline-none focus:border-indigo-500 bg-white"
+                      />
+                    </div>
+                  )}
                   </div>
                 ))}
               </div>

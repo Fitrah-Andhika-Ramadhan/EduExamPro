@@ -72,9 +72,10 @@ export default async function CoursesPage() {
                   
                   let href = '#'
                   if (!locked) {
-                    if (topic.type === 'video') href = `/courses/live/video-${idx}`
+                    if (topic.type === 'video') href = `/courses/video/${section.id}-${idx}`
+                    else if (topic.type === 'live') href = `/courses/live/${section.id}-${idx}`
                     else if (topic.type === 'quiz') href = '/tests'
-                    else href = `/courses/material/doc-${idx}`
+                    else href = `/courses/material/${section.id}-${idx}`
                   }
 
                   const Wrapper = locked ? 'div' : Link
@@ -87,6 +88,8 @@ export default async function CoursesPage() {
                           <CheckCircle className="w-6 h-6 text-emerald-500" />
                         ) : topic.type === 'video' ? (
                           <PlayCircle className="w-6 h-6 text-indigo-300" />
+                        ) : topic.type === 'live' ? (
+                          <Video className="w-6 h-6 text-rose-400" />
                         ) : (
                           <FileText className="w-6 h-6 text-indigo-300" />
                         )}
@@ -96,7 +99,7 @@ export default async function CoursesPage() {
                           {topic.title}
                           {topic.isPremium && <span className="bg-amber-100 text-amber-700 text-[10px] uppercase font-bold px-2 py-0.5 rounded">Pro</span>}
                         </div>
-                        <div className="text-xs text-gray-500">{topic.type === 'video' ? 'Video Materi / Live Session' : topic.type === 'document' ? 'Rangkuman PDF' : 'Kuis Pendek'}</div>
+                        <div className="text-xs text-gray-500">{topic.type === 'video' ? 'Video Materi Rekaman' : topic.type === 'live' ? 'Sesi Live Mentoring' : topic.type === 'document' ? 'Rangkuman PDF / Dokumen' : 'Kuis Pendek'}</div>
                       </div>
                       <div className="shrink-0">
                         {locked ? (

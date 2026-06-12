@@ -12,10 +12,10 @@ const DEFAULT_COURSES = [
     title: 'Materi TWK (Tes Wawasan Kebangsaan)',
     progress: 40,
     topics: [
-      { title: 'Pancasila & Pengamalannya', type: 'video', isCompleted: true, isPremium: false },
-      { title: 'UUD 1945 & Amandemen', type: 'document', isCompleted: true, isPremium: false },
-      { title: 'Sejarah Perjuangan Bangsa', type: 'video', isCompleted: false, isPremium: true },
-      { title: 'Sistem Tata Negara Indonesia', type: 'quiz', isCompleted: false, isPremium: true }
+      { title: 'Pancasila & Pengamalannya', type: 'live', isCompleted: true, isPremium: false, url: '' },
+      { title: 'UUD 1945 & Amandemen', type: 'document', isCompleted: true, isPremium: false, url: '' },
+      { title: 'Sejarah Perjuangan Bangsa', type: 'video', isCompleted: false, isPremium: true, url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+      { title: 'Sistem Tata Negara Indonesia', type: 'quiz', isCompleted: false, isPremium: true, url: '' }
     ]
   },
   {
@@ -23,10 +23,10 @@ const DEFAULT_COURSES = [
     title: 'Materi TIU (Tes Intelegensia Umum)',
     progress: 15,
     topics: [
-      { title: 'Kemampuan Verbal (Analogi, Silogisme)', type: 'video', isCompleted: true, isPremium: false },
-      { title: 'Kemampuan Numerik Dasar', type: 'document', isCompleted: false, isPremium: false },
-      { title: 'Deret Angka & Huruf Cepat', type: 'video', isCompleted: false, isPremium: true },
-      { title: 'Trik Cepat Soal Cerita', type: 'video', isCompleted: false, isPremium: true }
+      { title: 'Kemampuan Verbal (Analogi, Silogisme)', type: 'video', isCompleted: true, isPremium: false, url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+      { title: 'Kemampuan Numerik Dasar', type: 'document', isCompleted: false, isPremium: false, url: '' },
+      { title: 'Deret Angka & Huruf Cepat', type: 'live', isCompleted: false, isPremium: true, url: '' },
+      { title: 'Trik Cepat Soal Cerita', type: 'video', isCompleted: false, isPremium: true, url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }
     ]
   },
   {
@@ -34,9 +34,9 @@ const DEFAULT_COURSES = [
     title: 'Materi TKP (Tes Karakteristik Pribadi)',
     progress: 0,
     topics: [
-      { title: 'Pelayanan Publik & Jejaring Kerja', type: 'video', isCompleted: false, isPremium: false },
-      { title: 'Sosial Budaya & TIK', type: 'document', isCompleted: false, isPremium: true },
-      { title: 'Profesionalisme & Anti Radikalisme', type: 'video', isCompleted: false, isPremium: true }
+      { title: 'Pelayanan Publik & Jejaring Kerja', type: 'live', isCompleted: false, isPremium: false, url: '' },
+      { title: 'Sosial Budaya & TIK', type: 'document', isCompleted: false, isPremium: true, url: '' },
+      { title: 'Profesionalisme & Anti Radikalisme', type: 'video', isCompleted: false, isPremium: true, url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }
     ]
   }
 ]
