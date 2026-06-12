@@ -27,9 +27,9 @@ export function LandingMobileMenu() {
           
           <nav className="flex flex-col items-center gap-8 w-full px-8">
             <Link onClick={() => setIsOpen(false)} className="text-2xl font-bold text-on-surface hover:text-primary transition-colors" href="/">Beranda</Link>
-            <Link onClick={() => setIsOpen(false)} className="text-2xl font-bold text-on-surface hover:text-primary transition-colors" href="#">Kursus</Link>
-            <Link onClick={() => setIsOpen(false)} className="text-2xl font-bold text-on-surface hover:text-primary transition-colors" href="#">Tryout</Link>
-            <Link onClick={() => setIsOpen(false)} className="text-2xl font-bold text-on-surface hover:text-primary transition-colors" href="#">Tentang Kami</Link>
+            <Link onClick={() => setIsOpen(false)} className="text-2xl font-bold text-on-surface hover:text-primary transition-colors" href="/courses">Kursus</Link>
+            <Link onClick={() => setIsOpen(false)} className="text-2xl font-bold text-on-surface hover:text-primary transition-colors" href="/tests">Tryout</Link>
+            <Link onClick={() => setIsOpen(false)} className="text-2xl font-bold text-on-surface hover:text-primary transition-colors" href="/#about">Tentang Kami</Link>
             
             <div className="w-full h-px bg-outline-variant my-4"></div>
             

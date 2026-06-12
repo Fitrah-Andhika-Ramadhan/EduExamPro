@@ -130,9 +130,9 @@ export default async function LandingPage() {
               <span className="text-xl md:text-headline-md font-headline-md font-bold text-primary shrink-0">EduExam Pro</span>
               <div className="hidden md:flex items-center gap-6">
                 <Link className="text-secondary font-bold border-b-2 border-secondary font-body-md text-body-md hover:text-secondary transition-colors" href="/">Beranda</Link>
-                <Link className="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors" href="#">Kursus</Link>
-                <Link className="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors" href="#">Tryout</Link>
-                <Link className="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors" href="#">Tentang Kami</Link>
+                <Link className="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors" href="/courses">Kursus</Link>
+                <Link className="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors" href="/tests">Tryout</Link>
+                <Link className="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors" href="#about">Tentang Kami</Link>
               </div>
             </div>
             <div className="flex items-center gap-2 md:gap-4 shrink-0">
@@ -284,7 +284,7 @@ export default async function LandingPage() {
           </section>
 
           {/* Testimonial Section */}
-          <section className="bg-surface-container-low py-24">
+          <section id="about" className="bg-surface-container-low py-24">
             <div className="max-w-container-max mx-auto px-margin-desktop">
               <div className="flex flex-col items-center mb-16 text-center">
                 <span className="text-secondary font-bold tracking-widest text-xs uppercase mb-2">Suara Mereka</span>
