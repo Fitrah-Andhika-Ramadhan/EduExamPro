@@ -201,12 +201,10 @@ export default function LandingControlClient() {
                 <input value={feat.imageUrl || ''} onChange={e => updateFeature(idx, 'imageUrl', e.target.value)} placeholder="URL Gambar (Opsional)" className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-mono" />
               </div>
               <textarea value={feat.description} onChange={e => updateFeature(idx, 'description', e.target.value)} placeholder="Deskripsi Singkat" rows={2} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-              {idx === 0 && (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Poin Tambahan (Pisahkan dengan koma)</label>
-                  <input value={feat.bulletsStr || ''} onChange={e => updateFeature(idx, 'bulletsStr', e.target.value)} placeholder="Misal: Teks Video, Statistik Akurat" className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm" />
-                </div>
-              )}
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Poin Tambahan (Pisahkan dengan koma)</label>
+                <input value={feat.bulletsStr || ''} onChange={e => updateFeature(idx, 'bulletsStr', e.target.value)} placeholder="Misal: Teks Video, Statistik Akurat" className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm" />
+              </div>
             </div>
           ))}
         </div>

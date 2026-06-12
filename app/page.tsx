@@ -243,16 +243,17 @@ export default async function LandingPage() {
                 <div className="flex-1">
                   <h3 className="font-headline-sm text-headline-sm text-primary mb-3">{config.features[3].title}</h3>
                   <p className="text-on-surface-variant font-body-sm text-body-sm mb-6">{config.features[3].description}</p>
-                  <div className="flex gap-4">
-                    <div className="px-4 py-2 bg-white rounded shadow-sm border border-outline-variant flex items-center gap-2">
-                      <span className="material-symbols-outlined text-secondary">movie</span>
-                      <span className="font-label-md text-label-md text-primary">Video Materi</span>
+                  
+                  {config.features[3].bullets && config.features[3].bullets.length > 0 && (
+                    <div className="flex flex-wrap gap-4">
+                      {config.features[3].bullets.map((bullet: string, bidx: number) => (
+                        <div key={bidx} className="px-4 py-2 bg-white rounded shadow-sm border border-outline-variant flex items-center gap-2">
+                          <span className="material-symbols-outlined text-secondary">verified</span>
+                          <span className="font-label-md text-label-md text-primary">{bullet}</span>
+                        </div>
+                      ))}
                     </div>
-                    <div className="px-4 py-2 bg-white rounded shadow-sm border border-outline-variant flex items-center gap-2">
-                      <span className="material-symbols-outlined text-secondary">book</span>
-                      <span className="font-label-md text-label-md text-primary">E-Book</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
                 {config.features[3].imageUrl && (
                   <div className="flex-1 flex items-center justify-center">
