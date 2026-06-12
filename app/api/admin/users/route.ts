@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { user } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
+// @ts-ignore
 import bcrypt from 'bcryptjs'
 
 export const dynamic = 'force-dynamic'
