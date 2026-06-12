@@ -145,9 +145,9 @@ export default function TestTableClient({ initialTests }: { initialTests: TestDa
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
-                      <button className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit Paket">
+                      <a href={`/admin/tests/${t.id}`} className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit Paket">
                         <span className="material-symbols-outlined text-[20px]">edit</span>
-                      </button>
+                      </a>
                       <button 
                         onClick={() => handleDelete(t.id)}
                         className="p-2 text-error-red hover:bg-error-red/10 rounded-lg transition-colors" 

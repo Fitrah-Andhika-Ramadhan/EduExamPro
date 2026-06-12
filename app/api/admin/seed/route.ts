@@ -66,28 +66,49 @@ export async function POST(req: NextRequest) {
     }).returning({ id: tests.id })
 
     // 4. Create Questions for CPNS Test
-    const qCpnsData = [
-      {
-        questionText: 'Siapakah presiden pertama Indonesia?',
-        explanation: 'Soekarno adalah presiden pertama RI yang memproklamasikan kemerdekaan.',
+    const qCpnsData = []
+    
+    // Add 10 TWK (Wawasan Kebangsaan)
+    for (let i = 1; i <= 10; i++) {
+      qCpnsData.push({
+        questionText: `[TWK - Sejarah & UUD 1945] Soal Latihan Ke-${i}: Pasal berapakah dalam UUD 1945 amandemen keempat yang mengatur tentang pendidikan dan kebudayaan, serta bagaimana implementasinya di era modern?`,
+        explanation: `Pasal 31 mengatur tentang Pendidikan, sedangkan Pasal 32 mengatur tentang Kebudayaan Nasional. Di era modern, ini diimplementasikan melalui program wajib belajar 12 tahun dan pemajuan budaya nasional di kancah global. (Pembahasan komprehensif ke-${i})`,
         options: [
-          { text: 'Soeharto', isCorrect: false },
-          { text: 'Soekarno', isCorrect: true },
-          { text: 'B.J. Habibie', isCorrect: false },
-          { text: 'Megawati', isCorrect: false }
+          { text: 'Pasal 31 dan 32', isCorrect: true },
+          { text: 'Pasal 28 dan 29', isCorrect: false },
+          { text: 'Pasal 33 dan 34', isCorrect: false },
+          { text: 'Pasal 27 dan 30', isCorrect: false }
         ]
-      },
-      {
-        questionText: 'Berapakah hasil dari 25 + 75 * 2?',
-        explanation: 'Operasi perkalian didahulukan. 75 * 2 = 150. Lalu 25 + 150 = 175.',
+      })
+    }
+
+    // Add 10 TIU (Intelegensia Umum)
+    for (let i = 1; i <= 10; i++) {
+      qCpnsData.push({
+        questionText: `[TIU - Silogisme & Analitis] Soal Latihan Ke-${i}: Semua PNS di Kementerian X memiliki kemampuan analisis tinggi. Sebagian pegawai yang memiliki kemampuan analisis tinggi dipromosikan tahun ini. Kesimpulan yang tepat adalah...`,
+        explanation: `Silogisme: Sebagian PNS di Kementerian X dipromosikan tahun ini. Karena term "sebagian" mengikat premis minor ke premis mayor. (Pembahasan TIU ke-${i})`,
         options: [
-          { text: '200', isCorrect: false },
-          { text: '175', isCorrect: true },
-          { text: '150', isCorrect: false },
-          { text: '100', isCorrect: false }
+          { text: 'Sebagian PNS di Kementerian X dipromosikan tahun ini', isCorrect: true },
+          { text: 'Semua PNS di Kementerian X dipromosikan', isCorrect: false },
+          { text: 'Tidak ada PNS yang dipromosikan', isCorrect: false },
+          { text: 'Semua yang dipromosikan adalah PNS', isCorrect: false }
         ]
-      }
-    ]
+      })
+    }
+
+    // Add 5 TKP (Karakteristik Pribadi)
+    for (let i = 1; i <= 5; i++) {
+      qCpnsData.push({
+        questionText: `[TKP - Pelayanan Publik] Studi Kasus Ke-${i}: Anda sedang melayani masyarakat di loket, tiba-tiba datang seorang ibu hamil yang marah-marah karena mengantre terlalu lama. Apa tindakan paling tepat yang Anda lakukan?`,
+        explanation: `Dalam TKP Pelayanan Publik, utamakan empati dan solusi cepat tanpa mengabaikan SOP. Membantu dengan tenang menunjukkan profesionalitas.`,
+        options: [
+          { text: 'Mendengarkan keluhannya dengan tenang lalu mendahulukan pelayanannya sesuai prioritas', isCorrect: true },
+          { text: 'Meminta satpam untuk menenangkannya', isCorrect: false },
+          { text: 'Mengabaikan karena dia memotong antrean', isCorrect: false },
+          { text: 'Menyuruhnya kembali ke barisan dengan tegas', isCorrect: false }
+        ]
+      })
+    }
 
     for (let i = 0; i < qCpnsData.length; i++) {
       const qd = qCpnsData[i]
@@ -115,18 +136,20 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Create Questions for UTBK Test
-    const qUtbkData = [
-      {
-        questionText: 'Jika x = 5 dan y = 2, berapakah nilai dari x^2 - y^2?',
-        explanation: 'x^2 = 25. y^2 = 4. Maka 25 - 4 = 21.',
+    const qUtbkData = []
+    
+    for (let i = 1; i <= 20; i++) {
+      qUtbkData.push({
+        questionText: `[Penalaran Matematika] Soal UTBK Ke-${i}: Suatu pabrik memproduksi barang A dan B. Jika kecepatan produksi barang A adalah 3x lebih cepat dari barang B, dan total waktu yang dibutuhkan...`,
+        explanation: `Dengan menggunakan persamaan aljabar linear: Va = 3Vb. Substitusikan ke dalam persamaan waktu total. Pembahasan sangat detail untuk simulasi ke-${i}.`,
         options: [
-          { text: '21', isCorrect: true },
-          { text: '29', isCorrect: false },
-          { text: '10', isCorrect: false },
-          { text: '9', isCorrect: false }
+          { text: '45 jam', isCorrect: true },
+          { text: '30 jam', isCorrect: false },
+          { text: '15 jam', isCorrect: false },
+          { text: '60 jam', isCorrect: false }
         ]
-      }
-    ]
+      })
+    }
 
     for (let i = 0; i < qUtbkData.length; i++) {
       const qd = qUtbkData[i]

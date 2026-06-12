@@ -1,264 +1,128 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import { authClient } from '@/lib/auth-client'
-import { getTestById, getTestQuestions, addQuestionToTest, removeQuestionFromTest } from '@/app/actions/tests'
-import { getQuestions } from '@/app/actions/questions'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { db } from '@/lib/db'
+import { tests, testQuestions, questions, options } from '@/lib/db/schema'
+import { eq, desc } from 'drizzle-orm'
+import { auth } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { ArrowLeft, Trash2, Plus, Edit2, CheckCircle2 } from 'lucide-react'
 
-interface Test {
-  id: number
-  title: string
-  description: string | null
-  durationMinutes: number
-  passingScore: number
-  isPublished: boolean | null
-}
+export const dynamic = 'force-dynamic'
 
-interface Question {
-  id: number
-  questionText: string
-  difficulty: string
-  type: string
-}
+export default async function TestEditorPage({ params }: { params: { id: string } }) {
+  const session = await auth()
+  // @ts-ignore
+  if (!session?.user || session.user.role !== 'admin') redirect('/admin-login')
 
-interface TestQuestion {
-  id: number
-  testId: number
-  questionId: number
-  orderIndex: number | null
-}
+  const testId = parseInt(params.id)
+  
+  // Get test details
+  const testData = await db.select().from(tests).where(eq(tests.id, testId))
+  if (testData.length === 0) return <div>Paket ujian tidak ditemukan</div>
+  
+  const testInfo = testData[0]
 
-export default function TestDetailPage() {
-  const router = useRouter()
-  const params = useParams()
-  const testId = parseInt(params.id as string)
-
-  const [session, setSession] = useState<any>(null)
-  const [test, setTest] = useState<Test | null>(null)
-  const [testQuestions, setTestQuestions] = useState<TestQuestion[]>([])
-  const [availableQuestions, setAvailableQuestions] = useState<Question[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedQuestionId, setSelectedQuestionId] = useState('')
-  const [adding, setAdding] = useState(false)
-
-  useEffect(() => {
-    const checkSessionAndLoad = async () => {
-      const { data } = await authClient.getSession()
-      if (!data?.user) {
-        router.push('/sign-in')
-        return
-      }
-      setSession(data)
-
-      try {
-        const [testData, tqs, qs] = await Promise.all([
-          getTestById(testId),
-          getTestQuestions(testId),
-          getQuestions(),
-        ])
-
-        if (testData.length === 0) {
-          router.push('/admin/tests')
-          return
-        }
-
-        setTest(testData[0] as Test)
-        setTestQuestions(tqs as TestQuestion[])
-        setAvailableQuestions(qs as Question[])
-      } catch (error) {
-        console.error('Failed to load test:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    checkSessionAndLoad()
-  }, [testId, router])
-
-  const handleAddQuestion = async () => {
-    if (!selectedQuestionId) {
-      alert('Please select a question')
-      return
-    }
-
-    setAdding(true)
-    try {
-      const orderIndex = testQuestions.length
-      const result = await addQuestionToTest(testId, parseInt(selectedQuestionId), orderIndex)
-      setTestQuestions((prev) => [...prev, result as TestQuestion])
-      setSelectedQuestionId('')
-    } catch (error) {
-      console.error('Failed to add question:', error)
-      alert('Failed to add question')
-    } finally {
-      setAdding(false)
-    }
+  // Get questions linked to this test
+  const tqList = await db.select().from(testQuestions).where(eq(testQuestions.testId, testId)).orderBy(testQuestions.orderIndex)
+  const questionIds = tqList.map(tq => tq.questionId)
+  
+  let qList: any[] = []
+  if (questionIds.length > 0) {
+    const questionsData = await db.select().from(questions)
+    const optsData = await db.select().from(options)
+    
+    qList = questionIds.map(qid => {
+      const q = questionsData.find(x => x.id === qid)
+      const opts = optsData.filter(o => o.questionId === qid).sort((a,b) => (a.orderIndex||0) - (b.orderIndex||0))
+      return { ...q, options: opts }
+    }).filter(q => q.id !== undefined)
   }
-
-  const handleRemoveQuestion = async (questionId: number) => {
-    if (!confirm('Remove this question from the test?')) {
-      return
-    }
-
-    try {
-      await removeQuestionFromTest(testId, questionId)
-      setTestQuestions((prev) => prev.filter((tq) => tq.questionId !== questionId))
-    } catch (error) {
-      console.error('Failed to remove question:', error)
-      alert('Failed to remove question')
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div>Loading...</div>
-      </div>
-    )
-  }
-
-  if (!test) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div>Test not found</div>
-      </div>
-    )
-  }
-
-  const questionsInTest = availableQuestions.filter((q) => testQuestions.some((tq) => tq.questionId === q.id))
-  const availableForAdd = availableQuestions.filter((q) => !testQuestions.some((tq) => tq.questionId === q.id))
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b border-border bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-8">
-              <Link href="/" className="text-2xl font-bold text-foreground">
-                EduBangsa
-              </Link>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-foreground/80">{session?.user?.email}</span>
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  await authClient.signOut()
-                  router.push('/sign-in')
-                }}
-              >
-                Sign Out
-              </Button>
-            </div>
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+      <div className="flex items-center gap-4 mb-6">
+        <Link href="/admin/tests" className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 text-gray-500 shadow-sm transition-all">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900">Edit Paket Ujian</h1>
+          <p className="text-gray-500 text-sm">Kelola daftar pertanyaan di dalam paket ujian ini.</p>
+        </div>
+      </div>
+
+      {/* Test Meta Info */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="text-xl font-bold text-indigo-600">{testInfo.title}</h2>
+            {testInfo.isPublished && <span className="bg-emerald-100 text-emerald-700 text-[10px] uppercase font-bold px-2 py-0.5 rounded">Active</span>}
+          </div>
+          <p className="text-gray-600 text-sm">{testInfo.description}</p>
+          <div className="mt-3 flex gap-4 text-sm font-semibold text-gray-500">
+            <span>Durasi: {testInfo.durationMinutes} Menit</span>
+            <span>KKM: {testInfo.passingScore} Poin</span>
+            <span>Total Soal: {qList.length}</span>
           </div>
         </div>
-      </nav>
+        <button className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 border border-indigo-100 transition-colors">
+          <Edit2 className="w-4 h-4" /> Edit Pengaturan
+        </button>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <Link href="/admin/tests" className="text-primary hover:underline text-sm mb-4 inline-block">
-            ← Back to Tests
-          </Link>
-          <h1 className="text-3xl font-bold text-foreground mb-2">{test.title}</h1>
-          {test.description && (
-            <p className="text-foreground/70">{test.description}</p>
-          )}
-          <div className="flex gap-4 text-sm text-foreground/60 mt-4">
-            <span>⏱️ {test.durationMinutes} minutes</span>
-            <span>✓ Pass: {test.passingScore}%</span>
-            <span className={test.isPublished ? 'text-green-600' : 'text-yellow-600'}>
-              {test.isPublished ? '📤 Published' : '📋 Draft'}
-            </span>
-          </div>
+      {/* Questions List */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="p-4 md:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+          <h3 className="font-bold text-gray-800">Daftar Soal ({qList.length})</h3>
+          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 shadow-sm transition-colors">
+            <Plus className="w-4 h-4" /> Tambah Soal Baru
+          </button>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-2xl font-bold text-foreground mb-6">Questions ({testQuestions.length})</h2>
-              
-              {testQuestions.length === 0 ? (
-                <p className="text-foreground/70 text-center py-8">No questions added yet</p>
-              ) : (
-                <div className="space-y-4">
-                  {questionsInTest.map((question) => (
-                    <div
-                      key={question.id}
-                      className="bg-background border border-border rounded-lg p-4 flex justify-between items-start gap-4"
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground mb-2">{question.questionText}</p>
-                        <div className="flex gap-2 text-xs">
-                          <span className="px-2 py-1 bg-primary/10 text-primary rounded">
-                            {question.type}
-                          </span>
-                          <span className="px-2 py-1 bg-secondary/10 text-secondary rounded">
-                            {question.difficulty}
-                          </span>
+        
+        <div className="divide-y divide-gray-100">
+          {qList.length === 0 ? (
+            <div className="p-8 text-center text-gray-500 text-sm">
+              Belum ada soal. Klik tambah soal baru atau gunakan Import Massal.
+            </div>
+          ) : (
+            qList.map((q, idx) => (
+              <div key={q.id} className="p-4 md:p-6 hover:bg-gray-50 transition-colors group">
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0">
+                    {idx + 1}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-gray-900 font-medium mb-3">{q.questionText}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+                      {q.options.map((opt: any, oIdx: number) => (
+                        <div key={opt.id} className={`p-2 rounded border text-sm flex items-center gap-2 ${opt.isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-800 font-semibold' : 'bg-white border-gray-200 text-gray-600'}`}>
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${opt.isCorrect ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                            {String.fromCharCode(65 + oIdx)}
+                          </div>
+                          {opt.optionText}
+                          {opt.isCorrect && <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-auto" />}
                         </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRemoveQuestion(question.id)}
-                        className="text-red-600 hover:text-red-700 shrink-0"
-                      >
-                        Remove
-                      </Button>
+                      ))}
                     </div>
-                  ))}
+                    {q.explanation && (
+                      <div className="bg-amber-50 p-3 rounded-lg border border-amber-100 text-sm text-amber-800">
+                        <span className="font-bold block mb-1">Pembahasan:</span>
+                        {q.explanation}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 flex items-center justify-center transition-colors">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button className="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600 flex items-center justify-center transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Sidebar - Add Questions */}
-          <div className="lg:col-span-1">
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h3 className="text-lg font-bold text-foreground mb-4">Add Questions</h3>
-              
-              {availableForAdd.length === 0 ? (
-                <p className="text-foreground/70 text-sm mb-4">All your questions are already in this test.</p>
-              ) : (
-                <div className="space-y-4">
-                  <select
-                    value={selectedQuestionId}
-                    onChange={(e) => setSelectedQuestionId(e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm"
-                  >
-                    <option value="">Select a question...</option>
-                    {availableForAdd.map((q) => (
-                      <option key={q.id} value={q.id}>
-                        {q.questionText.substring(0, 40)}...
-                      </option>
-                    ))}
-                  </select>
-                  
-                  <Button
-                    onClick={handleAddQuestion}
-                    disabled={adding || !selectedQuestionId}
-                    className="w-full"
-                  >
-                    {adding ? 'Adding...' : 'Add Question'}
-                  </Button>
-                </div>
-              )}
-
-              <div className="mt-6 pt-6 border-t border-border">
-                <Link href="/admin/questions/new" className={buttonVariants({ variant: "outline", className: "w-full" })}>
-                  Create New Question
-                </Link>
               </div>
-            </div>
-          </div>
+            ))
+          )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }

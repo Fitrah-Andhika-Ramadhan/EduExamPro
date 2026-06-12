@@ -69,8 +69,19 @@ export default async function CoursesPage() {
               <div className="divide-y divide-gray-50 bg-gray-50/30">
                 {section.topics.map((topic: any, idx: number) => {
                   const locked = topic.isPremium && userPlan === 'free' && userRole !== 'admin'
+                  
+                  let href = '#'
+                  if (!locked) {
+                    if (topic.type === 'video') href = `/courses/live/video-${idx}`
+                    else if (topic.type === 'quiz') href = '/tests'
+                    else href = `/courses/material/doc-${idx}`
+                  }
+
+                  const Wrapper = locked ? 'div' : Link
+
                   return (
-                    <div key={idx} className={`p-4 sm:px-6 flex items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer ${locked ? 'opacity-60' : ''}`}>
+                    // @ts-ignore
+                    <Wrapper href={href} key={idx} className={`p-4 sm:px-6 flex items-center gap-4 hover:bg-gray-50 transition-colors ${locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
                       <div className="shrink-0">
                         {topic.isCompleted ? (
                           <CheckCircle className="w-6 h-6 text-emerald-500" />
@@ -85,7 +96,7 @@ export default async function CoursesPage() {
                           {topic.title}
                           {topic.isPremium && <span className="bg-amber-100 text-amber-700 text-[10px] uppercase font-bold px-2 py-0.5 rounded">Pro</span>}
                         </div>
-                        <div className="text-xs text-gray-500">{topic.type === 'video' ? 'Video Materi' : topic.type === 'document' ? 'Rangkuman PDF' : 'Kuis Pendek'}</div>
+                        <div className="text-xs text-gray-500">{topic.type === 'video' ? 'Video Materi / Live Session' : topic.type === 'document' ? 'Rangkuman PDF' : 'Kuis Pendek'}</div>
                       </div>
                       <div className="shrink-0">
                         {locked ? (
@@ -93,10 +104,10 @@ export default async function CoursesPage() {
                             <LockIcon className="w-3.5 h-3.5" /> Terkunci
                           </div>
                         ) : (
-                          <ChevronRight className="w-5 h-5 text-gray-300" />
+                          <ChevronRight className="w-5 h-5 text-gray-300 group-hover:translate-x-1 transition-transform" />
                         )}
                       </div>
-                    </div>
+                    </Wrapper>
                   )
                 })}
               </div>
