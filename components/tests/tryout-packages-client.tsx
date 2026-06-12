@@ -126,7 +126,7 @@ export default function TryoutPackagesClient({
               <div 
                 key={test.id} 
                 className="group relative bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col h-full hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1.5 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
-                style={{ animationFillMode: 'both', animationDelay: \`\${index * 50}ms\` }}
+                style={{ animationFillMode: 'both', animationDelay: `${index * 50}ms` }}
               >
                 {/* Header Image with Zoom Effect */}
                 <div className="h-40 w-full overflow-hidden relative bg-gray-100">
@@ -147,11 +147,11 @@ export default function TryoutPackagesClient({
                 <div className="p-5 flex flex-col flex-1 relative z-20 bg-white">
                   {/* Category Badge */}
                   <div className="mb-3 flex justify-between items-start">
-                    <span className={\`text-[10px] uppercase font-bold px-3 py-1 rounded-full border \${badgeInfo.color}\`}>
+                    <span className={`text-[10px] uppercase font-bold px-3 py-1 rounded-full border ${badgeInfo.color}`}>
                       {badgeInfo.label}
                     </span>
                     {isAttempted && result && (
-                      <span className={\`text-[10px] font-bold px-2 py-1 rounded border \${result.passed ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200'}\`}>
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded border ${result.passed ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
                         SKOR: {parseFloat(result.percentage ?? '0').toFixed(0)}%
                       </span>
                     )}
@@ -197,12 +197,12 @@ export default function TryoutPackagesClient({
                   {/* Buttons */}
                   <div className="flex items-center gap-2 pt-4 border-t border-gray-100 mt-auto">
                     <Link 
-                      href={isLocked ? '/choose-plan' : \`/tests/\${test.id}/take\`}
-                      className={\`flex-1 text-center py-2.5 rounded-xl font-bold text-sm transition-all \${
+                      href={isLocked ? '/choose-plan' : `/tests/${test.id}/take`}
+                      className={`flex-1 text-center py-2.5 rounded-xl font-bold text-sm transition-all ${
                         isLocked 
                           ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                           : 'bg-[#217b9b] text-white hover:bg-[#19637c] shadow-md shadow-[#217b9b]/20'
-                      }\`}
+                      }`}
                     >
                       {isLocked ? 'Buka Kunci Premium' : (isAttempted ? 'Kerjakan Ulang ➔' : 'Lihat Detail ➔')}
                     </Link>
@@ -221,7 +221,7 @@ export default function TryoutPackagesClient({
       )}
 
       {/* Global CSS for hiding scrollbar if not present */}
-      <style dangerouslySetInnerHTML={{__html: \`
+      <style dangerouslySetInnerHTML={{__html: `
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
@@ -229,7 +229,7 @@ export default function TryoutPackagesClient({
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
-      \`}} />
+      `}} />
     </div>
   )
 }
