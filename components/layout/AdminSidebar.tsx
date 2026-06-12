@@ -22,6 +22,7 @@ export function AdminSidebar() {
     { href: '/admin/tests', icon: 'menu_book', label: 'Bank Soal' },
     { href: '/admin/courses', icon: 'library_books', label: 'Materi Silabus' },
     { href: '/admin/schedule', icon: 'calendar_month', label: 'Jadwal Agenda' },
+    { href: '/admin/orders', icon: 'shopping_cart', label: 'Pesanan Masuk' },
     { href: '/admin/landing', icon: 'web', label: 'Atur Landing Page' },
     { href: '/admin/settings', icon: 'settings', label: 'Pengaturan Sistem' },
   ];

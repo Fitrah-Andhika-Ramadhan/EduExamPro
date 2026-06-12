@@ -224,11 +224,37 @@ export const userPurchases = pgTable(
     userId: text('userId').notNull().references(() => user.id),
     itemType: varchar('item_type', { length: 50 }).notNull(), // 'test' or 'course'
     itemId: varchar('item_id', { length: 255 }).notNull(), // test.id or course.id (stringified)
-    transactionId: text('transactionId'), // midtrans transaction ID
+    transactionId: text('transactionId'), // midtrans or manual order ID
     createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
   },
   (table) => ({
     userIdx: index('idx_purchases_user').on(table.userId),
     itemIdx: index('idx_purchases_item').on(table.itemId),
   })
+)
+
+export const orders = pgTable(
+  'orders',
+  {
+    id: text('id').primaryKey(), // Generated like 'ORD-12345678'
+    userId: text('userId').notNull().references(() => user.id),
+    status: varchar('status', { length: 50 }).notNull().default('pending'), // 'pending', 'verifying', 'completed', 'cancelled'
+    totalAmount: integer('total_amount').notNull(),
+    paymentMethod: varchar('payment_method', { length: 50 }), // 'BCA', 'MANDIRI', 'BRI', 'WhatsApp'
+    paymentProofUrl: text('payment_proof_url'), // base64 or url
+    createdAt: timestamp('createdAt', { mode: 'date' }).$defaultFn(() => new Date()),
+    updatedAt: timestamp('updatedAt', { mode: 'date' }).$defaultFn(() => new Date()),
+  }
+)
+
+export const orderItems = pgTable(
+  'order_items',
+  {
+    id: serial('id').primaryKey(),
+    orderId: text('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+    itemType: varchar('item_type', { length: 50 }).notNull(), // 'test' or 'course'
+    itemId: varchar('item_id', { length: 255 }).notNull(),
+    title: text('title').notNull(),
+    price: integer('price').notNull(),
+  }
 )

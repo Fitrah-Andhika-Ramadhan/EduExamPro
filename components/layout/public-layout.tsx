@@ -3,9 +3,13 @@
 import Link from 'next/link'
 import { LandingMobileMenu } from '@/components/layout/LandingMobileMenu'
 import { usePathname } from 'next/navigation'
+import { ShoppingCart } from 'lucide-react'
+import { useCartStore } from '@/lib/store/cart-store'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const cartItems = useCartStore((state) => state.items)
+  const cartItemCount = cartItems.length
   
   return (
     <div className="bg-background text-on-background font-body-md selection:bg-secondary-container min-h-screen flex flex-col">
@@ -22,6 +26,14 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
+            <Link href="/cart" className="relative p-2 text-on-surface-variant hover:text-secondary transition-colors">
+              <ShoppingCart className="w-6 h-6" />
+              {cartItemCount > 0 && (
+                <span className="absolute top-0 right-0 w-4 h-4 bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {cartItemCount}
+                </span>
+              )}
+            </Link>
             <Link href="/sign-in" className="hidden md:block px-6 py-2 text-primary font-semibold hover:text-secondary transition-colors font-body-md text-body-md">Masuk</Link>
             <Link href="/sign-up" className="hidden sm:block bg-secondary-container text-on-secondary-container px-4 md:px-6 py-2 rounded-lg font-bold hover:bg-secondary hover:text-on-secondary transition-all active:scale-95 font-body-md text-body-md shadow-sm">Daftar Sekarang</Link>
             <LandingMobileMenu />

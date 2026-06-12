@@ -1,8 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { BookOpen, LayoutDashboard, FileText, CheckSquare, TrendingUp, Calendar, Video, MessageSquare, LogOut, HeartHandshake } from 'lucide-react'
+import { BookOpen, LayoutDashboard, FileText, CheckSquare, TrendingUp, Calendar, Video, MessageSquare, LogOut, HeartHandshake, ShoppingCart } from 'lucide-react'
 import { handleSignOut } from '@/app/actions/auth-actions'
+import { useCartStore } from '@/lib/store/cart-store'
+
+function CartBadge() {
+  const count = useCartStore(state => state.items.length)
+  if (count === 0) return null
+  return (
+    <span className="absolute right-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+      {count}
+    </span>
+  )
+}
 
 export default function StudentSidebar({ activePath }: { activePath: string }) {
   const isActive = (path: string) => activePath.startsWith(path)
@@ -58,6 +69,11 @@ export default function StudentSidebar({ activePath }: { activePath: string }) {
           </Link>
         </div>
 
+        <Link href="/cart" className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm w-full text-indigo-600 hover:bg-indigo-50 transition-colors mb-2 relative">
+          <ShoppingCart className="w-5 h-5 opacity-70" />
+          Keranjang Belanja
+          <CartBadge />
+        </Link>
         <form action={handleSignOut}>
           <button type="submit" className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm w-full text-red-600 hover:bg-red-50 transition-colors">
             <LogOut className="w-5 h-5 opacity-70" />

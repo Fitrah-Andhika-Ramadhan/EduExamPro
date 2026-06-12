@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Search, ShoppingCart, Check, SlidersHorizontal, Lock, BookOpen } from 'lucide-react'
+import { useCartStore } from '@/lib/store/cart-store'
 
 type TestType = {
   id: number
@@ -241,8 +242,19 @@ export default function TryoutPackagesClient({
                       </Link>
                     )}
                     
-                    {!isPurchased && (
-                      <button className="w-10 h-10 rounded-xl border border-gray-200 text-[#217b9b] flex items-center justify-center hover:border-[#217b9b] hover:bg-[#217b9b]/5 transition-all shrink-0">
+                    {!isPurchased && test.price != null && (
+                      <button 
+                        onClick={() => {
+                          useCartStore.getState().addItem({
+                            id: String(test.id),
+                            title: test.title,
+                            price: test.price!,
+                            type: 'test'
+                          })
+                          alert('Berhasil ditambahkan ke keranjang!')
+                        }}
+                        className="w-10 h-10 rounded-xl border border-gray-200 text-[#217b9b] flex items-center justify-center hover:border-[#217b9b] hover:bg-[#217b9b]/5 transition-all shrink-0"
+                      >
                         <ShoppingCart className="w-4 h-4" />
                       </button>
                     )}

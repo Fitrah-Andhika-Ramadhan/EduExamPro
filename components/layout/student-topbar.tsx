@@ -5,7 +5,17 @@ import Link from 'next/link'
 import { BookOpen, Menu, X } from 'lucide-react'
 import { handleSignOut } from '@/app/actions/auth-actions'
 
-export default function StudentTopbar({ activePath, userName, userEmail }: { activePath: string, userName: string, userEmail: string }) {
+export default function StudentTopbar({ 
+  activePath, 
+  userName, 
+  userEmail,
+  children 
+}: { 
+  activePath: string, 
+  userName: string, 
+  userEmail: string,
+  children?: React.ReactNode
+}) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const links = [
@@ -25,9 +35,12 @@ export default function StudentTopbar({ activePath, userName, userEmail }: { act
           <BookOpen className="w-6 h-6" />
           <span className="text-lg font-extrabold tracking-tight">EduExam</span>
         </Link>
-        <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-          {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center gap-3">
+          {children}
+          <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </header>
 
       {menuOpen && (
