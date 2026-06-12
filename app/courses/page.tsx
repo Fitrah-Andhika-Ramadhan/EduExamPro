@@ -1,9 +1,6 @@
 import { auth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
 import StudentLayout from '@/components/layout/student-layout'
 import PublicLayout from '@/components/layout/public-layout'
-import Link from 'next/link'
-import { ShoppingCart, Check, BookOpen, Video, FileText, PlayCircle, Lock } from 'lucide-react'
 import { db } from '@/lib/db'
 import { settings, userPurchases } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -13,31 +10,115 @@ export const dynamic = 'force-dynamic'
 
 const DEFAULT_COURSES = [
   {
-    id: 1,
-    title: 'Materi Dasar TIU (Tes Intelegensia Umum)',
-    description: 'Pelajari dasar-dasar hitungan, logika, dan verbal untuk menaklukkan soal TIU.',
+    id: 101,
+    title: 'Masterclass TIU — Penalaran & Logika',
+    description: 'Kuasai semua tipe soal Tes Intelegensia Umum: numerik, verbal, figural, dan silogisme. Dilengkapi 200+ soal latihan dengan pembahasan mendalam.',
     price: 199000,
-    originalPrice: 299000,
+    originalPrice: 349000,
+    badge: 'Terlaris',
+    badgeColor: 'bg-rose-500',
+    icon: '🧠',
+    gradient: 'from-indigo-600 to-blue-700',
+    features: ['Lebih dari 200 soal latihan', 'Video pembahasan tiap bab', 'Modul PDF siap cetak', 'Akses seumur hidup'],
     topics: [
-      { title: 'Topik 1', type: 'video', isCompleted: false, isPremium: false }
+      { title: 'Pengantar & Strategi TIU', type: 'video' },
+      { title: 'Aritmatika & Barisan Bilangan', type: 'video' },
+      { title: 'Logika & Silogisme', type: 'doc' },
+      { title: 'Analogi Verbal', type: 'video' },
+      { title: 'Bank Soal Latihan TIU', type: 'quiz' },
     ]
   },
   {
-    id: 2,
-    title: 'Masterclass TWK (Tes Wawasan Kebangsaan)',
-    description: 'Pahami sejarah, UUD 1945, Pancasila, dan studi kasus TWK terupdate.',
+    id: 102,
+    title: 'Masterclass TWK — Kebangsaan & UUD 1945',
+    description: 'Pahami Pancasila, UUD 1945, NKRI, Bhinneka Tunggal Ika, dan sejarah Indonesia secara sistematis. Dirancang khusus untuk passing grade SKD CPNS.',
     price: 149000,
-    originalPrice: 199000,
-    topics: []
+    originalPrice: 249000,
+    badge: 'Baru',
+    badgeColor: 'bg-emerald-500',
+    icon: '🇮🇩',
+    gradient: 'from-emerald-600 to-teal-700',
+    features: ['150+ soal TWK terbaru', 'Rangkuman Pancasila & UUD', 'Infografis mudah dipahami', 'Update materi berkala'],
+    topics: [
+      { title: 'Pancasila & Nilai-Nilainya', type: 'video' },
+      { title: 'UUD 1945 Amandemen I–IV', type: 'doc' },
+      { title: 'Sejarah Nasional Indonesia', type: 'video' },
+      { title: 'Wawasan Nusantara & Geopolitik', type: 'doc' },
+      { title: 'Bank Soal Latihan TWK', type: 'quiz' },
+    ]
   },
   {
-    id: 3,
-    title: 'Strategi TKP (Tes Karakteristik Pribadi)',
-    description: 'Cara menjawab soal TKP agar mendapat poin maksimal 5.',
+    id: 103,
+    title: 'Strategi TKP — Nilai Maksimal 5',
+    description: 'Teknik menjawab soal TKP dengan strategi poin 5 di setiap soal. Pelajari pola jawaban ideal ASN berdasarkan nilai-nilai BerAKHLAK.',
     price: 99000,
-    originalPrice: 150000,
-    topics: []
-  }
+    originalPrice: 179000,
+    badge: null,
+    badgeColor: null,
+    icon: '⭐',
+    gradient: 'from-violet-600 to-purple-700',
+    features: ['Pola jawaban BerAKHLAK', '100+ soal TKP terklasifikasi', 'Simulasi ujian penuh', 'Tips anti salah pilih'],
+    topics: [
+      { title: 'Mengenal Pola Soal TKP', type: 'video' },
+      { title: 'Nilai BerAKHLAK dalam Praktik', type: 'doc' },
+      { title: 'Strategi Memaksimalkan Poin', type: 'video' },
+      { title: 'Bank Soal TKP 100+', type: 'quiz' },
+    ]
+  },
+  {
+    id: 104,
+    title: 'Paket Komplit SKD CPNS 2025',
+    description: 'Satu paket lengkap mengcover TIU, TWK, dan TKP. Solusi terbaik bagi Anda yang ingin mempersiapkan seluruh materi SKD dalam satu pembelian hemat.',
+    price: 349000,
+    originalPrice: 649000,
+    badge: 'Hemat 46%',
+    badgeColor: 'bg-amber-500',
+    icon: '🏆',
+    gradient: 'from-amber-500 to-orange-600',
+    features: ['Semua materi TIU + TWK + TKP', 'Tryout simulasi 5x gratis', 'Mentor 1-on-1 via WA', 'Garansi uang kembali 7 hari'],
+    topics: [
+      { title: 'Semua Modul TIU Lengkap', type: 'video' },
+      { title: 'Semua Modul TWK Lengkap', type: 'video' },
+      { title: 'Semua Modul TKP Lengkap', type: 'video' },
+      { title: '5 Sesi Tryout Simulasi SKD', type: 'quiz' },
+      { title: 'Sesi Mentoring Eksklusif', type: 'video' },
+    ]
+  },
+  {
+    id: 105,
+    title: 'SKB Teknis — Formasi Teknis & Fungsional',
+    description: 'Persiapan mendalam untuk Seleksi Kompetensi Bidang sesuai formasi jabatan Anda. Tersedia untuk berbagai bidang teknis populer.',
+    price: 249000,
+    originalPrice: 399000,
+    badge: null,
+    badgeColor: null,
+    icon: '📋',
+    gradient: 'from-sky-600 to-cyan-700',
+    features: ['Materi spesifik per jabatan', 'Soal SKB tahun sebelumnya', 'Analisis kisi-kisi terbaru', 'Video pembahasan mendalam'],
+    topics: [
+      { title: 'Pengantar SKB & Kisi-Kisi', type: 'video' },
+      { title: 'Soal SKB Tahun Lalu + Pembahasan', type: 'doc' },
+      { title: 'Simulasi Ujian SKB', type: 'quiz' },
+    ]
+  },
+  {
+    id: 106,
+    title: 'Bahasa Inggris untuk ASN',
+    description: 'Tingkatkan kemampuan bahasa Inggris Anda untuk seleksi ASN dan tes kompetensi. Fokus pada reading comprehension, grammar, dan vocabulary konteks pekerjaan.',
+    price: 129000,
+    originalPrice: 199000,
+    badge: null,
+    badgeColor: null,
+    icon: '🌐',
+    gradient: 'from-pink-600 to-rose-700',
+    features: ['Grammar & vocabulary ASN', 'Reading comprehension teknik', 'Soal TOEFL-like', 'Cocok untuk PPPK & CPNS'],
+    topics: [
+      { title: 'English Grammar Essentials', type: 'video' },
+      { title: 'Reading Comprehension Strategy', type: 'video' },
+      { title: 'Vocabulary untuk ASN', type: 'doc' },
+      { title: 'Latihan Soal Bahasa Inggris', type: 'quiz' },
+    ]
+  },
 ]
 
 export default async function CoursesPage() {
@@ -50,13 +131,13 @@ export default async function CoursesPage() {
   // @ts-ignore
   const userRole = session?.user?.role || 'public'
 
-  let syllabus: any[] = []
+  let dbCourses: any[] = []
   let myPurchases = new Set<string>()
 
   try {
     const records = await db.select().from(settings).where(eq(settings.id, 'courses_config'))
     if (records.length > 0) {
-      syllabus = JSON.parse(records[0].value)
+      dbCourses = JSON.parse(records[0].value)
     }
 
     if (userId) {
@@ -67,33 +148,21 @@ export default async function CoursesPage() {
     console.error('Failed to load courses', err)
   }
 
+  // Use DB courses if available, otherwise fall back to defaults
+  const courses = dbCourses.length > 0 ? dbCourses : DEFAULT_COURSES
+
   // @ts-ignore
   const LayoutComponent = isPublic ? PublicLayout : ({ children }) => <StudentLayout activePath="/courses">{children}</StudentLayout>
 
   return (
     <LayoutComponent>
-      <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-10">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Katalog Kursus</h1>
-          <p className="text-gray-500">Pilih dan beli paket kursus sesuai dengan kebutuhan persiapan Anda.</p>
-        </div>
-
-        {syllabus.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-            <BookOpen className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-gray-900 mb-1">Belum ada kursus</h3>
-            <p className="text-gray-500">Admin belum menambahkan katalog kursus.</p>
-          </div>
-        ) : (
-          <CoursesClient 
-            courses={syllabus} 
-            userPlan={userPlan} 
-            userRole={userRole} 
-            myPurchases={Array.from(myPurchases)} 
-            isPublic={isPublic}
-          />
-        )}
-      </div>
+      <CoursesClient 
+        courses={courses} 
+        userPlan={userPlan} 
+        userRole={userRole} 
+        myPurchases={Array.from(myPurchases)} 
+        isPublic={isPublic}
+      />
     </LayoutComponent>
   )
 }
