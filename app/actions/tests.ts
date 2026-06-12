@@ -160,6 +160,26 @@ export async function publishTest(id: number) {
 }
 
 export async function getTestWithQuestions(testId: number) {
+  const session = await auth()
+  // @ts-ignore
+  const userPlan = session?.user?.plan || 'free'
+  // @ts-ignore
+  const userRole = session?.user?.role || 'user'
+  
+  if (userPlan === 'free' && userRole !== 'admin') {
+     // we need to check if the test is one of the first 2 published tests
+     const allPublished = await db
+       .select({ id: tests.id })
+       .from(tests)
+       .where(eq(tests.isPublished, true))
+       .orderBy(desc(tests.createdAt))
+     
+     const allowedTestIds = allPublished.slice(0, 2).map(t => t.id)
+     if (!allowedTestIds.includes(testId)) {
+       throw new Error('PLAN_RESTRICTED')
+     }
+  }
+
   const testData = await db
     .select()
     .from(tests)

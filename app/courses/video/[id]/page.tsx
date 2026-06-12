@@ -40,6 +40,11 @@ export default async function VideoCoursePage({ params }: { params: Promise<{ id
     }
   } catch (err) {}
 
+  // @ts-ignore
+  if (topic.isPremium && session.user.plan === 'free' && session.user.role !== 'admin') {
+    redirect('/choose-plan')
+  }
+
   const youtubeId = getYoutubeId(topic.url)
 
   return (

@@ -10,6 +10,11 @@ export default async function MentoringPage() {
   const session = await auth()
   if (!session?.user?.id) redirect('/sign-in')
 
+  // @ts-ignore
+  if (session.user.plan === 'free' && session.user.role !== 'admin') {
+    redirect('/choose-plan')
+  }
+
   // Mock mentoring data
   const upcomingSessions = [
     {

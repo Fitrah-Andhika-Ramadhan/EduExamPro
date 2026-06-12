@@ -51,9 +51,13 @@ export default function TakeExamPage() {
         } else {
           setTimeRemaining(dur * 60)
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error(err)
-        router.push('/tests')
+        if (err.message?.includes('PLAN_RESTRICTED')) {
+          router.push('/choose-plan')
+        } else {
+          router.push('/tests')
+        }
       } finally {
         setLoading(false)
       }

@@ -10,7 +10,29 @@ export default async function MaterialPage({ params }: { params: Promise<{ id: s
   if (!session?.user?.id) redirect('/sign-in')
   
   const resolvedParams = await params;
-  const id = resolvedParams.id;
+  const [courseIdStr, topicIdxStr] = resolvedParams.id.split('-')
+  const courseId = parseInt(courseIdStr)
+  const topicIdx = parseInt(topicIdxStr)
+
+  let topic: any = null
+  try {
+    const { db } = await import('@/lib/db')
+    const { settings } = await import('@/lib/db/schema')
+    const { eq } = await import('drizzle-orm')
+    const records = await db.select().from(settings).where(eq(settings.id, 'courses_config'))
+    if (records.length > 0) {
+      const syllabus = JSON.parse(records[0].value)
+      const course = syllabus.find((c: any) => c.id === courseId)
+      if (course && course.topics[topicIdx]) {
+        topic = course.topics[topicIdx]
+      }
+    }
+  } catch (err) {}
+
+  // @ts-ignore
+  if (topic?.isPremium && session.user.plan === 'free' && session.user.role !== 'admin') {
+    redirect('/choose-plan')
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">

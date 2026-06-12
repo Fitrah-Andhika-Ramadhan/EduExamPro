@@ -17,6 +17,7 @@ export default async function MentoringLivePage({ params }: { params: Promise<{ 
   const courseId = parseInt(courseIdStr)
   const topicIdx = parseInt(topicIdxStr)
 
+  let topic: any = null
   let topicTitle = 'Sesi Live Mentoring'
   let courseTitle = 'EduExam Pro'
 
@@ -26,11 +27,17 @@ export default async function MentoringLivePage({ params }: { params: Promise<{ 
       const syllabus = JSON.parse(records[0].value)
       const course = syllabus.find((c: any) => c.id === courseId)
       if (course && course.topics[topicIdx]) {
-        topicTitle = course.topics[topicIdx].title
+        topic = course.topics[topicIdx]
+        topicTitle = topic.title
         courseTitle = course.title
       }
     }
   } catch (err) {}
+
+  // @ts-ignore
+  if (topic?.isPremium && session.user.plan === 'free' && session.user.role !== 'admin') {
+    redirect('/choose-plan')
+  }
 
   return <MentoringLiveClient topicTitle={topicTitle} courseTitle={courseTitle} />
 }
