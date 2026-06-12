@@ -2,6 +2,8 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import CoursesControlClient from '@/components/admin/courses-control-client'
 
+
+
 export default async function AdminCoursesPage() {
   const session = await auth()
   
