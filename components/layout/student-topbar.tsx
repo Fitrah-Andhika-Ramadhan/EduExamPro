@@ -19,13 +19,14 @@ export default function StudentTopbar({
   const [menuOpen, setMenuOpen] = useState(false)
 
   const links = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/courses', label: 'Silabus Pembelajaran' },
-    { href: '/tests', label: 'Tryout & Ujian' },
-    { href: '/results', label: 'Hasil & Statistik' },
-    { href: '/schedule', label: 'Jadwal Ujian' },
-    { href: '/mentoring', label: 'Mentoring Saya' },
-    { href: '/mentoring/request', label: 'Ajukan Mentoring' },
+    { href: '/dashboard',          label: 'Dashboard',           section: 'main' },
+    { href: '/courses',            label: '🛒 Katalog Kursus',   section: 'catalog' },
+    { href: '/tests',              label: '🛒 Katalog Tryout',   section: 'catalog' },
+    { href: '/cart',               label: '🛍️ Keranjang Belanja', section: 'catalog' },
+    { href: '/results',            label: 'Hasil & Statistik',   section: 'main' },
+    { href: '/schedule',           label: 'Jadwal Ujian',        section: 'main' },
+    { href: '/mentoring',          label: 'Mentoring Saya',      section: 'main' },
+    { href: '/mentoring/request',  label: 'Ajukan Mentoring',    section: 'main' },
   ]
 
   return (

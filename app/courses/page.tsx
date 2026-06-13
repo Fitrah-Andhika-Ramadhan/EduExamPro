@@ -121,11 +121,18 @@ const DEFAULT_COURSES = [
   },
 ]
 
-export default async function CoursesPage() {
+export default async function CoursesPage({
+  searchParams
+}: {
+  searchParams: Promise<{ welcome?: string }>
+}) {
   const session = await auth()
+  const params = await searchParams
+  const isNewUser = params.welcome === '1'
   
   const isPublic = !session?.user?.id
   const userId = session?.user?.id
+  const userName = session?.user?.name?.split(' ')[0] || 'Pengguna'
   // @ts-ignore
   const userPlan = session?.user?.plan || 'free'
   // @ts-ignore
@@ -162,6 +169,8 @@ export default async function CoursesPage() {
         userRole={userRole} 
         myPurchases={Array.from(myPurchases)} 
         isPublic={isPublic}
+        isNewUser={isNewUser}
+        userName={isNewUser ? userName : undefined}
       />
     </LayoutComponent>
   )

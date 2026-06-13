@@ -64,6 +64,26 @@ export default async function UserDashboardPage() {
           </div>
         </div>
 
+        {/* Catalog Shortcut Banner */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Link href="/courses" className="group flex items-center gap-4 bg-gradient-to-br from-indigo-600 to-blue-700 text-white rounded-2xl p-5 shadow-lg shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200">
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0 text-2xl">📚</div>
+            <div className="flex-1">
+              <p className="font-extrabold text-base">Katalog Kursus</p>
+              <p className="text-indigo-200 text-xs mt-0.5">TIU, TWK, TKP, SKB & lebih banyak lagi</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-white/60 group-hover:translate-x-1 transition-transform" />
+          </Link>
+          <Link href="/tests" className="group flex items-center gap-4 bg-gradient-to-br from-violet-600 to-purple-700 text-white rounded-2xl p-5 shadow-lg shadow-violet-200 hover:-translate-y-0.5 transition-all duration-200">
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0 text-2xl">📝</div>
+            <div className="flex-1">
+              <p className="font-extrabold text-base">Katalog Tryout</p>
+              <p className="text-violet-200 text-xs mt-0.5">SKD CPNS, PPPK, BUMN, UTBK & lainnya</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-white/60 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
         {/* Bento Grid Main Content */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           

@@ -28,6 +28,8 @@ type CoursesClientProps = {
   userRole: string
   myPurchases?: string[]
   isPublic: boolean
+  isNewUser?: boolean
+  userName?: string
 }
 
 const TOPIC_ICONS: Record<string, React.ReactNode> = {
@@ -41,7 +43,9 @@ export default function CoursesClient({
   userPlan, 
   userRole, 
   myPurchases = [],
-  isPublic
+  isPublic,
+  isNewUser = false,
+  userName = 'Pengguna'
 }: CoursesClientProps) {
   const router = useRouter()
   const purchasesSet = new Set(myPurchases)
@@ -67,6 +71,30 @@ export default function CoursesClient({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/20">
+
+      {/* Welcome Banner for New Users */}
+      {isNewUser && (
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-4 py-5">
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🎉</span>
+              <div>
+                <p className="font-extrabold text-lg">Selamat datang, {userName}!</p>
+                <p className="text-emerald-100 text-sm">Akun Anda berhasil dibuat. Jelajahi kursus dan tryout di bawah ini — pilih yang sesuai dan mulai belajar hari ini!</p>
+              </div>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <Link href="/tests" className="px-4 py-2 bg-white/20 hover:bg-white/30 border border-white/30 text-white font-bold rounded-xl text-sm transition-all">
+                📝 Lihat Tryout
+              </Link>
+              <Link href="/choose-plan" className="px-4 py-2 bg-white text-emerald-700 font-bold rounded-xl text-sm hover:bg-emerald-50 transition-all shadow-md">
+                ⚡ Upgrade Pro
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Header */}
       <div className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-700 text-white py-14 px-4">
         <div className="max-w-6xl mx-auto text-center">
