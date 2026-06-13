@@ -16,7 +16,7 @@ export function AdminSidebar() {
   };
 
   const links = [
-    { href: '/admin/dashboard', icon: 'dashboard', label: 'Dashboard' },
+    { href: '/admin', icon: 'dashboard', label: 'Dashboard' },
     { href: '/admin/users', icon: 'group', label: 'Manajemen Pengguna' },
     { href: '/admin/logs', icon: 'analytics', label: 'Laporan Institusi' },
     { href: '/admin/tests', icon: 'menu_book', label: 'Bank Soal' },

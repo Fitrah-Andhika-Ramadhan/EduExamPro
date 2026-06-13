@@ -59,7 +59,7 @@ export function AuthForm({ mode, redirectTo }: { mode: 'sign-in' | 'sign-up', re
         // @ts-ignore
         const role = session?.user?.role
         if (role === 'admin') {
-          router.push('/admin/dashboard')
+          router.push('/admin')
         } else {
           router.push(redirectTo || '/dashboard')
         }

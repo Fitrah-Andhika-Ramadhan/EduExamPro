@@ -83,7 +83,7 @@ export default async function LandingPage() {
   
   if (session?.user) {
     // @ts-ignore
-    if (session.user.role === 'admin') redirect('/admin/dashboard')
+    if (session.user.role === 'admin') redirect('/admin')
     // @ts-ignore
     if (session.user.role === 'instructor') redirect('/instructor/dashboard')
     redirect('/dashboard')
