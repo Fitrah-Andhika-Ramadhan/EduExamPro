@@ -1,10 +1,14 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle2, Crown, Zap, BookOpen, Star, Shield, Clock, BarChart3, Mic, Lock, ArrowRight, Sparkles } from 'lucide-react'
+import { CheckCircle2, Crown, Zap, BookOpen, Star, Shield, Clock, BarChart3, Mic, Lock, ArrowRight, Sparkles, ShoppingBag } from 'lucide-react'
 import PricingButton from '@/components/pricing-button'
 
-export default async function ChoosePlanPage() {
+export default async function ChoosePlanPage({
+  searchParams
+}: {
+  searchParams: Promise<{ redirect?: string }>
+}) {
   const session = await auth()
   if (!session?.user?.id) redirect('/sign-in')
 
@@ -12,6 +16,10 @@ export default async function ChoosePlanPage() {
   if (session.user.role === 'admin') redirect('/admin')
   // @ts-ignore
   if (session.user.plan === 'pro') redirect('/dashboard')
+
+  const params = await searchParams
+  const redirectTo = params.redirect || null
+  const isFromCart = redirectTo === '/checkout'
 
   const userName = session.user.name?.split(' ')[0] || 'Pengguna'
 
@@ -65,6 +73,20 @@ export default async function ChoosePlanPage() {
             <Sparkles className="w-4 h-4" />
             Akun berhasil dibuat! Selamat datang.
           </div>
+
+          {/* Cart context banner */}
+          {isFromCart && (
+            <div className="max-w-lg mx-auto mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 text-left">
+              <ShoppingBag className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-amber-800 text-sm">Keranjang belanja Anda menunggu!</p>
+                <p className="text-amber-700 text-xs mt-0.5 leading-relaxed">
+                  Pilih paket di bawah, lalu Anda akan langsung diarahkan untuk menyelesaikan pembayaran. Keranjang Anda tetap tersimpan.
+                </p>
+              </div>
+            </div>
+          )}
+
           <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
             Hai <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(135deg, #7c3aed, #2563eb)' }}>{userName}</span>,<br />
             pilih paket belajarmu! 🎯
@@ -105,9 +127,13 @@ export default async function ChoosePlanPage() {
               ))}
             </ul>
 
-            <Link href="/dashboard"
-              className="w-full text-center py-3.5 rounded-2xl font-bold text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all">
-              Mulai Gratis
+            <Link href={redirectTo || '/dashboard'}
+              className="w-full text-center py-3.5 rounded-2xl font-bold text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
+              {isFromCart ? (
+                <><ShoppingBag className="w-4 h-4" /> Lanjut ke Keranjang</>
+              ) : (
+                'Mulai Gratis'
+              )}
             </Link>
           </div>
 
@@ -247,7 +273,9 @@ export default async function ChoosePlanPage() {
         {/* Bottom CTA */}
         <div className="text-center">
           <p className="text-gray-400 text-sm">
-            Sudah yakin? <Link href="/dashboard" className="text-purple-600 font-semibold hover:underline">Lanjut dengan Paket Gratis →</Link>
+            Sudah yakin? <Link href={redirectTo || '/dashboard'} className="text-purple-600 font-semibold hover:underline">
+              {isFromCart ? 'Lanjut ke Keranjang →' : 'Lanjut dengan Paket Gratis →'}
+            </Link>
           </p>
         </div>
       </div>

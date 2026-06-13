@@ -39,7 +39,7 @@ export function AuthForm({ mode, redirectTo }: { mode: 'sign-in' | 'sign-up', re
           router.push('/sign-in')
           return
         }
-        router.push(redirectTo || '/choose-plan')
+        router.push(redirectTo ? `/choose-plan?redirect=${encodeURIComponent(redirectTo)}` : '/choose-plan')
         router.refresh()
       } else {
         const result = await authClient.signIn.email({ email, password })
