@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth-client'
+import { signUp } from '@/app/actions/auth'
+import { getSession } from 'next-auth/react'
 
 export function AuthForm({ mode, redirectTo }: { mode: 'sign-in' | 'sign-up', redirectTo?: string }) {
   const router = useRouter()
@@ -24,7 +26,6 @@ export function AuthForm({ mode, redirectTo }: { mode: 'sign-in' | 'sign-up', re
     try {
       if (isSignUp) {
         // Step 1: Create account in DB
-        const { signUp } = await import('@/app/actions/auth')
         const result = await signUp(email, password, name)
         if (result.error) {
           setError(result.error)
@@ -54,7 +55,6 @@ export function AuthForm({ mode, redirectTo }: { mode: 'sign-in' | 'sign-up', re
           return
         }
         // Get session to redirect based on role
-        const { getSession } = await import('next-auth/react')
         const session = await getSession()
         // @ts-ignore
         const role = session?.user?.role
