@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Menu, X } from 'lucide-react'
+import { BookOpen, Menu, X, ShoppingCart } from 'lucide-react'
 import { handleSignOut } from '@/app/actions/auth-actions'
+import { useCartStore } from '@/lib/store/cart-store'
 
 export default function StudentTopbar({ 
   activePath, 
@@ -38,6 +39,16 @@ export default function StudentTopbar({
         </Link>
         <div className="flex items-center gap-3">
           {children}
+          
+          <Link href="/cart" className="relative p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+            <ShoppingCart className="w-5 h-5" />
+            {useCartStore((state) => state.items.length) > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {useCartStore((state) => state.items.length)}
+              </span>
+            )}
+          </Link>
+
           <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
