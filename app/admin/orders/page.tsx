@@ -27,42 +27,37 @@ const METHOD_LABEL: Record<string, string> = {
   whatsapp: 'WhatsApp',
 }
 
+import { getAdminOrders, updateOrderStatus } from '@/app/actions/orders'
+
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([])
-  const [selectedProof, setSelectedProof] = useState<Order | null>(null)
+  const [orders, setOrders] = useState<any[]>([])
+  const [selectedProof, setSelectedProof] = useState<any | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
 
-  const loadOrders = () => {
-    const loadedOrders: Order[] = []
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key?.startsWith('order_')) {
-        const data = localStorage.getItem(key)
-        if (data) loadedOrders.push(JSON.parse(data))
-      }
-    }
-    loadedOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    setOrders(loadedOrders)
+  const loadOrders = async () => {
+    setIsLoading(true)
+    const data = await getAdminOrders()
+    setOrders(data)
     setIsLoading(false)
   }
 
   useEffect(() => { loadOrders() }, [])
 
-  const updateOrderStatus = (orderId: string, newStatus: string) => {
-    const orderData = localStorage.getItem(`order_${orderId}`)
-    if (orderData) {
-      const updated = { ...JSON.parse(orderData), status: newStatus }
-      localStorage.setItem(`order_${orderId}`, JSON.stringify(updated))
-      setOrders(prev => prev.map(o => o.id === orderId ? updated : o))
+  const handleUpdateStatus = async (orderId: string, newStatus: 'completed' | 'cancelled') => {
+    const result = await updateOrderStatus(orderId, newStatus)
+    if (result.success) {
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o))
       setSelectedProof(null)
+    } else {
+      alert('Gagal mengupdate status: ' + result.error)
     }
   }
 
   const filteredOrders = orders.filter(o => {
     const matchSearch = !searchQuery || o.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.items.some(i => i.title?.toLowerCase().includes(searchQuery.toLowerCase()))
+      o.items.some((i: any) => i.title?.toLowerCase().includes(searchQuery.toLowerCase()))
     const matchStatus = statusFilter === 'all' || o.status === statusFilter
     return matchSearch && matchStatus
   })
@@ -196,7 +191,7 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="px-5 py-4 max-w-[220px]">
                         <div className="space-y-1">
-                          {order.items.map((item, idx) => (
+                          {order.items.map((item: any, idx: number) => (
                             <div key={idx} className="flex items-start gap-1.5">
                               <span className="text-xs">{item.type === 'course' ? '📚' : '📝'}</span>
                               <span className="text-xs text-gray-700 line-clamp-1" title={item.title}>{item.title}</span>
@@ -231,13 +226,13 @@ export default function AdminOrdersPage() {
                         {order.status === 'verifying' ? (
                           <div className="flex items-center justify-end gap-2">
                             <button 
-                              onClick={() => updateOrderStatus(order.id, 'completed')}
+                              onClick={() => handleUpdateStatus(order.id, 'completed')}
                               className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
                             >
                               <CheckCircle className="w-3 h-3" /> Terima
                             </button>
                             <button 
-                              onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                              onClick={() => handleUpdateStatus(order.id, 'cancelled')}
                               className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-red-600 border border-red-200 text-xs font-bold rounded-lg hover:bg-red-50 transition-colors"
                             >
                               <XCircle className="w-3 h-3" /> Tolak
@@ -281,13 +276,13 @@ export default function AdminOrdersPage() {
                 {selectedProof.status === 'verifying' && (
                   <>
                     <button 
-                      onClick={() => updateOrderStatus(selectedProof.id, 'completed')}
+                      onClick={() => handleUpdateStatus(selectedProof.id, 'completed')}
                       className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700"
                     >
                       <CheckCircle className="w-4 h-4" /> Terima Pembayaran
                     </button>
                     <button 
-                      onClick={() => updateOrderStatus(selectedProof.id, 'cancelled')}
+                      onClick={() => handleUpdateStatus(selectedProof.id, 'cancelled')}
                       className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-600 border border-red-200 text-sm font-bold rounded-lg hover:bg-red-100"
                     >
                       <XCircle className="w-4 h-4" /> Tolak
@@ -312,7 +307,7 @@ export default function AdminOrdersPage() {
               </div>
               <div>
                 <span className="text-gray-500">Item: </span>
-                <span className="font-semibold text-gray-800">{selectedProof.items.map(i => i.title).join(', ')}</span>
+                <span className="font-semibold text-gray-800">{selectedProof.items.map((i: any) => i.title).join(', ')}</span>
               </div>
             </div>
 

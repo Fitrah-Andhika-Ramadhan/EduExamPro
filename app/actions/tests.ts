@@ -2,7 +2,7 @@
 
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { tests, testQuestions, questions, options as optionsTable, results, userAnswers } from '@/lib/db/schema'
+import { tests, testQuestions, questions, options as optionsTable, results, userAnswers, userPurchases } from '@/lib/db/schema'
 import { and, desc, eq } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
@@ -167,18 +167,33 @@ export async function getTestWithQuestions(testId: number) {
   const userRole = session?.user?.role || 'user'
   
   if (userPlan === 'free' && userRole !== 'admin') {
-     // we need to check if the test is one of the first 2 published tests
-     const allPublished = await db
-       .select({ id: tests.id })
-       .from(tests)
-       .where(eq(tests.isPublished, true))
-       .orderBy(desc(tests.createdAt))
-     
-     const allowedTestIds = allPublished.slice(0, 2).map(t => t.id)
-     if (!allowedTestIds.includes(testId)) {
-       throw new Error('PLAN_RESTRICTED')
+     // Check if user has purchased this test
+     let hasPurchased: any[] = []
+     if (session?.user?.id) {
+       hasPurchased = await db
+         .select({ id: userPurchases.id })
+         .from(userPurchases)
+         .where(and(eq(userPurchases.userId, session.user.id), eq(userPurchases.itemId, testId.toString())))
+         .limit(1)
+     }
+
+     if (hasPurchased.length === 0) {
+       // we need to check if the test is one of the first 2 published tests
+       const allPublished = await db
+         .select({ id: tests.id })
+         .from(tests)
+         .where(eq(tests.isPublished, true))
+         .orderBy(desc(tests.createdAt))
+       
+       const allowedTestIds = allPublished.slice(0, 2).map(t => t.id)
+       if (!allowedTestIds.includes(testId) && testId < 200) {
+         throw new Error('PLAN_RESTRICTED')
+       }
      }
   }
+
+  // Hapus semua injeksi data dummy (IDs >= 200) karena data kini berasal langsung dari tabel `tests` di database Supabase.
+
 
   const testData = await db
     .select()

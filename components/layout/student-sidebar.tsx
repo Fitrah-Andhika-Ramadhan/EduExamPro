@@ -21,6 +21,7 @@ export default function StudentSidebar({ activePath }: { activePath: string }) {
   const isActive = (path: string) => (pathname || activePath).startsWith(path)
 
   const catalogLinks = [
+    { href: '/my-packages', label: 'Paket Saya', icon: ShoppingBag, badge: null },
     { href: '/courses', label: 'Katalog Kursus', icon: BookOpen, badge: 'Baru' },
     { href: '/tests',   label: 'Katalog Tryout',  icon: CheckSquare, badge: null },
   ]
@@ -104,13 +105,19 @@ export default function StudentSidebar({ activePath }: { activePath: string }) {
 
       {/* Bottom Section */}
       <div className="p-3 border-t border-gray-100 space-y-1">
-        {/* Keranjang */}
+        {/* Keranjang & Pesanan */}
         <Link href="/cart" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-all ${
           isActive('/cart') ? 'bg-indigo-50 text-indigo-600' : 'text-indigo-600 hover:bg-indigo-50'
         }`}>
           <ShoppingCart className="w-4.5 h-4.5" />
           Keranjang Belanja
           <CartBadge />
+        </Link>
+        <Link href="/orders" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+          isActive('/orders') ? 'bg-indigo-50 text-indigo-600' : 'text-indigo-600 hover:bg-indigo-50'
+        }`}>
+          <ShoppingBag className="w-4.5 h-4.5" />
+          Riwayat Pesanan
         </Link>
 
         {/* Upgrade card */}

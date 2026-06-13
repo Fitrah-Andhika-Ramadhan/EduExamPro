@@ -18,9 +18,11 @@ export default function StudentTopbar({
   children?: React.ReactNode
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const cartItemCount = useCartStore((state) => state.items.length)
 
   const links = [
     { href: '/dashboard',          label: 'Dashboard',           section: 'main' },
+    { href: '/my-packages',        label: '📦 Paket Saya',       section: 'catalog' },
     { href: '/courses',            label: '🛒 Katalog Kursus',   section: 'catalog' },
     { href: '/tests',              label: '🛒 Katalog Tryout',   section: 'catalog' },
     { href: '/cart',               label: '🛍️ Keranjang Belanja', section: 'catalog' },
@@ -42,9 +44,9 @@ export default function StudentTopbar({
           
           <Link href="/cart" className="relative p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
             <ShoppingCart className="w-5 h-5" />
-            {useCartStore((state) => state.items.length) > 0 && (
+            {cartItemCount > 0 && (
               <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                {useCartStore((state) => state.items.length)}
+                {cartItemCount}
               </span>
             )}
           </Link>

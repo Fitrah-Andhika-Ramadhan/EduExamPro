@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Copy, Upload, CheckCircle2, Clock, ChevronRight, AlertCircle, ImageIcon } from 'lucide-react'
 import Link from 'next/link'
+import { getOrder, uploadPaymentProof } from '@/app/actions/orders'
 
 type OrderDetails = {
   id: string
@@ -24,8 +25,11 @@ export default function CheckoutInstructionPage() {
   const [copied, setCopied] = useState<string | null>(null)
 
   useEffect(() => {
-    const saved = localStorage.getItem(`order_${orderId}`)
-    if (saved) setOrder(JSON.parse(saved))
+    const fetchOrder = async () => {
+      const data = await getOrder(orderId)
+      if (data) setOrder(data as OrderDetails)
+    }
+    fetchOrder()
   }, [orderId])
 
   const handleCopy = (text: string, key: string) => {
@@ -51,14 +55,11 @@ export default function CheckoutInstructionPage() {
     if (!proofBase64) return alert('Pilih file bukti transfer terlebih dahulu!')
     setIsSubmitting(true)
     try {
-      await new Promise(r => setTimeout(r, 1200))
-      if (order) {
-        const updated = { ...order, status: 'verifying', paymentProofUrl: proofBase64 }
-        localStorage.setItem(`order_${orderId}`, JSON.stringify(updated))
-      }
+      const result = await uploadPaymentProof(orderId, proofBase64)
+      if (!result.success) throw new Error(result.error)
       setIsSuccess(true)
-    } catch {
-      alert('Gagal mengunggah bukti pembayaran.')
+    } catch (error: any) {
+      alert('Gagal mengunggah bukti pembayaran: ' + error.message)
     } finally {
       setIsSubmitting(false)
     }

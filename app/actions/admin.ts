@@ -2,7 +2,7 @@
 
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { user, tests, results, questions, options } from '@/lib/db/schema'
+import { user, tests, results, questions, options, session as sessionTable, account, transactions, userPurchases, orders } from '@/lib/db/schema'
 import { eq, inArray } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 // @ts-ignore
@@ -26,7 +26,16 @@ export async function deleteUser(userId: string) {
   }
 
   try {
+    // Delete dependent records first to avoid foreign key violations
+    await db.delete(sessionTable).where(eq(sessionTable.userId, userId))
+    await db.delete(account).where(eq(account.userId, userId))
+    await db.delete(transactions).where(eq(transactions.userId, userId))
+    await db.delete(userPurchases).where(eq(userPurchases.userId, userId))
+    await db.delete(orders).where(eq(orders.userId, userId))
+
+    // Finally delete the user
     await db.delete(user).where(eq(user.id, userId))
+    
     revalidatePath('/admin/users')
     return { success: true, message: 'Pengguna berhasil dihapus' }
   } catch (err: any) {

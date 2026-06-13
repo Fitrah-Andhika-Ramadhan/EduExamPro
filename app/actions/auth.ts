@@ -1,11 +1,17 @@
 'use server'
 
 import { db } from '@/lib/db'
-import { user } from '@/lib/db/schema'
+import { user, userPurchases } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 // @ts-ignore
 import bcrypt from 'bcryptjs'
 import { redirect } from 'next/navigation'
+
+// Paket gratis yang diberikan otomatis ke setiap akun baru
+const FREE_STARTER_ITEMS = [
+  { itemType: 'course' as const, itemId: '101', label: 'Masterclass TIU — Penalaran & Logika' },
+  { itemType: 'test'   as const, itemId: '201', label: 'SKD CPNS 2025 — Simulasi Lengkap CAT' },
+]
 
 export async function signUp(
   email: string,
@@ -59,6 +65,24 @@ export async function signUp(
       return {
         error: 'Failed to create user',
       }
+    }
+
+    const userId = newUser[0].id
+
+    // ✅ Berikan paket gratis: 1 kursus + 1 tryout untuk akun baru
+    try {
+      await db.insert(userPurchases).values(
+        FREE_STARTER_ITEMS.map(item => ({
+          userId,
+          itemType: item.itemType,
+          itemId: item.itemId,
+          transactionId: `free_starter_${userId}`,
+          createdAt: new Date(),
+        }))
+      )
+    } catch (giftErr) {
+      // Jangan gagalkan registrasi jika pemberian paket gratis error
+      console.error('Failed to grant free starter pack:', giftErr)
     }
 
     // Return success - client will handle login

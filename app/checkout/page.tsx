@@ -5,12 +5,15 @@ import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/lib/store/cart-store'
 import { Building2, Wallet, MessageCircle, ArrowRight, ShieldCheck, CheckCircle2, ChevronRight, Lock, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { useSession } from '@/lib/auth-client'
+import { createOrder } from '@/app/actions/orders'
 
 export default function CheckoutPage() {
   const router = useRouter()
   const { items, getTotal, clearCart } = useCartStore()
   const [paymentMethod, setPaymentMethod] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
+  const { data: session } = useSession()
 
   const paymentOptions = [
     { 
@@ -45,19 +48,16 @@ export default function CheckoutPage() {
 
   const handleCheckout = async () => {
     if (!paymentMethod) return alert('Silakan pilih metode pembayaran terlebih dahulu!')
+    if (!session?.user) return alert('Sesi Anda telah habis. Silakan login kembali.')
     
     setIsProcessing(true)
     try {
-      const orderId = `ORD-${Date.now()}`
-      const orderDetails = {
-        id: orderId,
-        items,
-        totalAmount: getTotal(),
-        paymentMethod,
-        status: 'pending',
-        createdAt: new Date().toISOString()
+      const result = await createOrder(session.user.id as string, items, paymentMethod, getTotal())
+      
+      if (!result.success) {
+        throw new Error(result.error)
       }
-      localStorage.setItem(`order_${orderId}`, JSON.stringify(orderDetails))
+
       clearCart()
       
       if (paymentMethod === 'whatsapp') {
@@ -65,7 +65,7 @@ export default function CheckoutPage() {
         window.open(`https://wa.me/6281234567890?text=${encodeURIComponent(text)}`, '_blank')
         router.push('/dashboard')
       } else {
-        router.push(`/checkout/${orderId}`)
+        router.push(`/checkout/${result.orderId}`)
       }
     } catch (err) {
       console.error(err)

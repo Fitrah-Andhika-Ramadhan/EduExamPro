@@ -22,6 +22,7 @@ export default function TakeExamPage() {
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [showAIAlert, setShowAIAlert] = useState(false)
+  const [showSubmitModal, setShowSubmitModal] = useState(false)
 
   const questionRef = useRef<HTMLDivElement>(null)
 
@@ -77,15 +78,11 @@ export default function TakeExamPage() {
   }, [answers, doubtful, timeRemaining, test, testId])
 
   // 3. Submit Handler
-  const handleSubmit = useCallback(async (isAutoSubmit = false) => {
+  const executeSubmit = useCallback(async () => {
     if (submitting || !test) return
     
-    if (!isAutoSubmit) {
-      const isConfirmed = confirm('Apakah Anda yakin ingin menyelesaikan ujian ini? Waktu Anda mungkin masih ada.')
-      if (!isConfirmed) return
-    }
-
     setSubmitting(true)
+    setShowSubmitModal(false)
     try {
       const dur = test.durationMinutes || 60
       const durationSeconds = (dur * 60) - timeRemaining
@@ -107,6 +104,14 @@ export default function TakeExamPage() {
     }
   }, [submitting, test, timeRemaining, testId, answers, router])
 
+  const requestSubmit = useCallback((isAutoSubmit = false) => {
+    if (isAutoSubmit) {
+      executeSubmit()
+    } else {
+      setShowSubmitModal(true)
+    }
+  }, [executeSubmit])
+
   // 4. Timer Logic
   useEffect(() => {
     if (loading || submitting || timeRemaining <= 0) return
@@ -115,7 +120,7 @@ export default function TakeExamPage() {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          handleSubmit(true)
+          requestSubmit(true)
           return 0
         }
         return prev - 1
@@ -123,7 +128,7 @@ export default function TakeExamPage() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [loading, submitting, timeRemaining, handleSubmit])
+  }, [loading, submitting, timeRemaining, requestSubmit])
 
   // 5. KaTeX Math Rendering
   useEffect(() => {
@@ -202,22 +207,26 @@ export default function TakeExamPage() {
       ` }} />
       <div className="bg-surface font-body-md text-on-surface overflow-hidden h-screen flex flex-col">
         {/* Top Navigation */}
-        <nav className="bg-surface border-b border-outline-variant shadow-sm z-50">
-          <div className="flex justify-between items-center w-full px-margin-desktop max-w-container-max mx-auto h-16">
+        <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-sm z-50 relative">
+          <div className="flex justify-between items-center w-full px-6 max-w-[1400px] mx-auto h-20">
             <div className="flex items-center gap-4">
-              <span className="text-headline-sm font-headline-sm font-bold text-primary">EduExam Pro</span>
-              <div className="h-6 w-px bg-outline-variant"></div>
-              <span className="font-body-md text-on-surface-variant hidden md:inline">{test.title}</span>
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                <span className="material-symbols-outlined text-white">edit_document</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-extrabold text-gray-900 tracking-tight leading-none">EduExam Pro</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 hidden md:block truncate max-w-[300px]">{test.title}</span>
+              </div>
             </div>
             <div className="flex items-center gap-6">
               {/* AI Proctoring Indicator */}
-              <div className="flex items-center gap-2 bg-error-container px-3 py-1.5 rounded-full">
-                <span className="material-symbols-outlined text-error proctoring-pulse" style={{ fontVariationSettings: "'FILL' 1" }}>videocam</span>
-                <span className="font-label-md text-label-md text-on-error-container uppercase hidden sm:inline">AI Proctoring Aktif</span>
+              <div className="flex items-center gap-2 bg-red-50 px-4 py-2 rounded-full border border-red-100 shadow-sm">
+                <span className="material-symbols-outlined text-red-500 proctoring-pulse" style={{ fontVariationSettings: "'FILL' 1" }}>videocam</span>
+                <span className="text-xs font-bold text-red-600 uppercase tracking-wider hidden sm:inline">AI Proctoring Aktif</span>
               </div>
               <div className="flex flex-col items-end">
-                <span className="font-label-md text-label-md text-on-surface-variant uppercase">Sisa Waktu</span>
-                <span className={`font-headline-sm font-bold tracking-tight tabular-nums ${timeRemaining < 300 ? 'text-error animate-pulse' : 'text-primary'}`} id="timer">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sisa Waktu</span>
+                <span className={`text-2xl font-black tracking-tight tabular-nums ${timeRemaining < 300 ? 'text-red-500 animate-pulse' : 'text-indigo-600'}`} id="timer">
                   {formatTime(timeRemaining)}
                 </span>
               </div>
@@ -226,56 +235,53 @@ export default function TakeExamPage() {
         </nav>
 
         {/* Main Exam Engine Layout */}
-        <main className="flex-grow flex overflow-hidden">
+        <main className="flex-grow flex overflow-hidden bg-gray-50/50">
           {/* Left: Question Area */}
-          <section className="flex-grow overflow-y-auto custom-scrollbar bg-surface-container-lowest shadow-sm m-4 rounded-xl border border-outline-variant relative">
-            <div className="max-w-[800px] mx-auto px-6 md:px-12 py-10 md:py-16" ref={questionRef}>
+          <section className="flex-grow overflow-y-auto custom-scrollbar p-4 md:p-8 relative">
+            <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 px-6 py-10 md:px-14 md:py-16 relative overflow-hidden" ref={questionRef}>
               
+              {/* Decorative gradient blur */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
               {/* Question Header */}
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="font-headline-md text-headline-md text-primary">Pertanyaan {currentIdx + 1}</h2>
+              <div className="flex justify-between items-center mb-8 relative z-10">
+                <h2 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm">{currentIdx + 1}</span>
+                  Pertanyaan
+                </h2>
                 <div className="flex gap-2">
-                  <span className="bg-surface-container text-on-surface-variant font-label-md text-label-md px-3 py-1 rounded">ID: Q-{question.id}</span>
-                  <span className="bg-secondary-fixed text-on-secondary-container font-label-md text-label-md px-3 py-1 rounded">Bobot: 1</span>
+                  <span className="bg-gray-100 text-gray-500 font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-full">ID: Q-{question.id}</span>
+                  <span className="bg-purple-100 text-purple-600 font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-full">Bobot: 1</span>
                 </div>
               </div>
 
               {/* Question Text */}
-              <div className="font-body-lg text-body-lg text-on-surface leading-relaxed mb-12">
-                <div dangerouslySetInnerHTML={{ __html: question.questionText }} />
+              <div className="text-lg text-gray-700 leading-relaxed mb-12 relative z-10 font-medium prose prose-indigo max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: question.questionText || question.text }} />
               </div>
 
               {/* Options */}
-              <div className="space-y-4 mb-16">
+              <div className="space-y-4 mb-8 relative z-10">
                 {question.options.map((opt: any, idx: number) => {
                   const isSelected = answers[question.id] === opt.id
                   const char = String.fromCharCode(65 + idx)
 
                   if (isSelected) {
                     return (
-                      <label key={opt.id} className="group flex items-center p-4 border-2 border-secondary bg-secondary-fixed rounded-lg cursor-pointer transition-all active:scale-[0.99]">
-                        <input 
-                          type="radio" 
-                          name={`answer-${question.id}`} 
-                          checked 
-                          onChange={() => handleSelectOption(question.id, opt.id)}
-                          className="w-5 h-5 text-secondary border-outline focus:ring-secondary" 
-                        />
-                        <span className="ml-4 font-body-md text-body-md text-on-secondary-container font-semibold">{char}. {opt.optionText}</span>
+                      <label key={opt.id} onClick={() => handleSelectOption(question.id, opt.id)} className="group flex items-center p-5 border-2 border-indigo-500 bg-indigo-50/50 rounded-2xl cursor-pointer transition-all active:scale-[0.99] shadow-md shadow-indigo-100/50">
+                        <div className="w-6 h-6 rounded-full border-4 border-indigo-500 flex items-center justify-center bg-white shrink-0">
+                           <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full"></div>
+                        </div>
+                        <span className="ml-4 text-base text-indigo-900 font-semibold leading-snug"><span className="font-black mr-1">{char}.</span> {opt.optionText || opt.text}</span>
                       </label>
                     )
                   }
 
                   return (
-                    <label key={opt.id} className="group flex items-center p-4 border border-outline-variant rounded-lg cursor-pointer transition-all hover:bg-surface-container-low active:scale-[0.99]">
-                      <input 
-                        type="radio" 
-                        name={`answer-${question.id}`} 
-                        checked={false}
-                        onChange={() => handleSelectOption(question.id, opt.id)}
-                        className="w-5 h-5 text-secondary border-outline focus:ring-secondary" 
-                      />
-                      <span className="ml-4 font-body-md text-body-md text-on-surface">{char}. {opt.optionText}</span>
+                    <label key={opt.id} onClick={() => handleSelectOption(question.id, opt.id)} className="group flex items-center p-5 border-2 border-gray-100 bg-white rounded-2xl cursor-pointer transition-all hover:border-indigo-200 hover:bg-gray-50 active:scale-[0.99] hover:shadow-sm">
+                      <div className="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white shrink-0 group-hover:border-indigo-300 transition-colors">
+                      </div>
+                      <span className="ml-4 text-base text-gray-600 leading-snug font-medium group-hover:text-gray-900 transition-colors"><span className="font-bold mr-1">{char}.</span> {opt.optionText || opt.text}</span>
                     </label>
                   )
                 })}
@@ -285,30 +291,30 @@ export default function TakeExamPage() {
           </section>
 
           {/* Right: Question Palette */}
-          <aside className="hidden lg:flex w-80 bg-surface-container-low flex-col border border-outline-variant m-4 ml-0 rounded-xl overflow-hidden">
-            <div className="p-5 border-b border-outline-variant bg-surface-container-highest">
-              <h3 className="font-headline-sm text-headline-sm text-primary mb-1">Navigasi Soal</h3>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">Klik nomor untuk pindah soal</p>
+          <aside className="hidden lg:flex w-80 bg-white flex-col border-l border-gray-100 shadow-xl z-10">
+            <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+              <h3 className="text-base font-extrabold text-gray-900 mb-1">Navigasi Soal</h3>
+              <p className="text-xs font-semibold text-gray-400">Klik nomor untuk pindah soal</p>
             </div>
             
-            <div className="p-5 flex-grow overflow-y-auto custom-scrollbar">
-              <div className="grid grid-cols-5 gap-2">
+            <div className="p-6 flex-grow overflow-y-auto custom-scrollbar">
+              <div className="grid grid-cols-5 gap-3">
                 {test.questions.map((q: any, i: number) => {
                   const hasAnswer = answers.hasOwnProperty(q.id)
                   const isDoubt = doubtful[q.id]
                   const isActive = currentIdx === i
 
                   // Base classes
-                  let classes = "aspect-square flex items-center justify-center rounded-md font-bold text-label-md transition-all active:scale-90 "
+                  let classes = "aspect-square flex items-center justify-center rounded-xl font-bold text-sm transition-all active:scale-90 "
                   
                   if (isActive) {
-                    classes += "border-2 border-secondary bg-secondary-container text-on-secondary-container ring-2 ring-secondary ring-offset-1"
+                    classes += "bg-indigo-600 text-white shadow-lg shadow-indigo-200 ring-2 ring-indigo-600 ring-offset-2"
                   } else if (isDoubt) {
-                    classes += "border border-outline-variant bg-warning-orange text-white"
+                    classes += "bg-amber-400 text-white shadow-md shadow-amber-100"
                   } else if (hasAnswer) {
-                    classes += "border border-outline-variant bg-success-green text-white"
+                    classes += "bg-emerald-500 text-white shadow-md shadow-emerald-100"
                   } else {
-                    classes += "border border-outline-variant bg-white text-on-surface"
+                    classes += "bg-white text-gray-500 border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50"
                   }
 
                   return (
@@ -324,40 +330,40 @@ export default function TakeExamPage() {
               </div>
             </div>
 
-            <div className="p-5 border-t border-outline-variant space-y-3 bg-surface-container-highest">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-success-green rounded border border-outline-variant"></div>
-                <span className="text-body-sm font-body-sm">Terjawab ({answeredCount})</span>
+            <div className="p-6 border-t border-gray-100 space-y-4 bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 bg-emerald-500 rounded-md shadow-sm"></div>
+                <span className="text-sm font-bold text-gray-600">Terjawab ({answeredCount})</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-warning-orange rounded border border-outline-variant"></div>
-                <span className="text-body-sm font-body-sm">Ragu-ragu ({doubtfulCount})</span>
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 bg-amber-400 rounded-md shadow-sm"></div>
+                <span className="text-sm font-bold text-gray-600">Ragu-ragu ({doubtfulCount})</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-white border border-outline-variant rounded"></div>
-                <span className="text-body-sm font-body-sm">Belum Dijawab ({unansweredCount})</span>
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 bg-white border-2 border-gray-200 rounded-md shadow-sm"></div>
+                <span className="text-sm font-bold text-gray-600">Belum Dijawab ({unansweredCount})</span>
               </div>
             </div>
           </aside>
         </main>
 
         {/* Footer Controls */}
-        <footer className="bg-surface border-t border-outline-variant">
-          <div className="flex justify-between items-center w-full px-4 md:px-margin-desktop max-w-container-max mx-auto h-20">
+        <footer className="bg-white border-t border-gray-200 z-50">
+          <div className="flex justify-between items-center w-full px-6 max-w-[1400px] mx-auto h-24">
             <button 
               onClick={() => setCurrentIdx(Math.max(0, currentIdx - 1))}
               disabled={currentIdx === 0}
-              className="flex items-center gap-2 px-4 md:px-6 py-2.5 border border-primary text-primary font-bold rounded hover:bg-primary-fixed transition-colors active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-3.5 border-2 border-gray-200 text-gray-600 font-extrabold rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-colors active:scale-95 disabled:opacity-30 disabled:hover:border-gray-200 disabled:hover:bg-transparent"
             >
               <span className="material-symbols-outlined">arrow_back</span>
               <span className="hidden sm:inline">Sebelumnya</span>
             </button>
             
             {/* Action Buttons */}
-            <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
               <button 
                 onClick={() => toggleDoubtful(question.id)}
-                className="flex items-center gap-2 px-4 md:px-8 py-2.5 bg-warning-orange text-white font-bold rounded-lg shadow-sm hover:brightness-110 transition-all active:scale-95"
+                className="flex items-center gap-2 px-6 py-3.5 bg-amber-400 text-white font-extrabold rounded-xl shadow-lg shadow-amber-200 hover:bg-amber-500 transition-all active:scale-95"
               >
                 <span className="material-symbols-outlined">help</span>
                 <span className="hidden sm:inline">Ragu-ragu</span>
@@ -365,17 +371,17 @@ export default function TakeExamPage() {
               
               {currentIdx === test.questions.length - 1 ? (
                 <button 
-                  onClick={() => handleSubmit()}
+                  onClick={() => requestSubmit(false)}
                   disabled={submitting}
-                  className="flex items-center gap-2 px-4 md:px-8 py-2.5 bg-success-green text-white font-bold rounded hover:brightness-110 transition-colors active:scale-95 disabled:opacity-50"
+                  className="flex items-center gap-2 px-8 py-3.5 bg-emerald-500 text-white font-extrabold rounded-xl shadow-lg shadow-emerald-200 hover:bg-emerald-600 transition-colors active:scale-95 disabled:opacity-50 disabled:animate-pulse"
                 >
                   <span className="material-symbols-outlined">check_circle</span>
-                  <span>{submitting ? 'Mengirim...' : 'Selesai'}</span>
+                  <span>{submitting ? 'Mengirim...' : 'Selesai & Kumpulkan'}</span>
                 </button>
               ) : (
                 <button 
                   onClick={() => setCurrentIdx(Math.min(test.questions.length - 1, currentIdx + 1))}
-                  className="flex items-center gap-2 px-4 md:px-8 py-2.5 bg-primary text-white font-bold rounded hover:bg-primary-container transition-colors active:scale-95"
+                  className="flex items-center gap-2 px-8 py-3.5 bg-indigo-600 text-white font-extrabold rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors active:scale-95"
                 >
                   <span className="hidden sm:inline">Selanjutnya</span>
                   <span className="material-symbols-outlined">arrow_forward</span>
@@ -402,6 +408,39 @@ export default function TakeExamPage() {
             </div>
           </div>
         </div>
+
+        {/* Custom Submit Modal */}
+        {showSubmitModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" onClick={() => setShowSubmitModal(false)}></div>
+            <div className="bg-white rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] w-full max-w-md p-8 relative z-10 transform transition-all animate-fade-in">
+              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>
+              </div>
+              <h3 className="text-2xl font-extrabold text-center text-gray-900 mb-2">Selesaikan Ujian?</h3>
+              <p className="text-center text-gray-500 mb-8 font-medium">
+                Apakah Anda yakin ingin menyelesaikan ujian ini? Waktu Anda masih tersisa <strong className="text-gray-900">{formatTime(timeRemaining)}</strong>.
+                {unansweredCount > 0 && <span className="block mt-2 text-red-500 font-bold">Ada {unansweredCount} soal yang belum dijawab!</span>}
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={() => setShowSubmitModal(false)}
+                  className="flex-1 px-6 py-3.5 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={() => executeSubmit()}
+                  disabled={submitting}
+                  className="flex-1 px-6 py-3.5 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition-colors disabled:opacity-50"
+                >
+                  {submitting ? 'Mengirim...' : 'Ya, Kumpulkan!'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </>

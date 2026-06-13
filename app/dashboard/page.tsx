@@ -11,9 +11,11 @@ export default async function UserDashboardPage() {
   const userName = session?.user?.name ?? 'Peserta';
   const userId = session?.user?.id;
 
-  // Fetch real data
-  const userResults = userId ? await db.select().from(results).where(eq(results.userId, userId)).orderBy(desc(results.completedAt)) : [];
-  const upcomingTests = await db.select().from(tests).where(eq(tests.isPublished, true)).limit(2);
+  // Fetch real data concurrently
+  const [userResults, upcomingTests] = await Promise.all([
+    userId ? db.select().from(results).where(eq(results.userId, userId)).orderBy(desc(results.completedAt)) : Promise.resolve([]),
+    db.select().from(tests).where(eq(tests.isPublished, true)).limit(2)
+  ])
 
   const totalAttempts = userResults.length;
   const passedCount = userResults.filter(r => r.passed).length;
@@ -30,7 +32,7 @@ export default async function UserDashboardPage() {
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Halo, {userName}! 👋</h1>
             <p className="text-gray-500 mt-1 font-medium">Selamat datang kembali. Mari lanjutkan progres belajarmu hari ini.</p>
           </div>
-          <Link href="/courses" className="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
+          <Link href="/choose-plan" className="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
             <BookOpen className="w-5 h-5" /> Mulai Belajar
           </Link>
         </div>

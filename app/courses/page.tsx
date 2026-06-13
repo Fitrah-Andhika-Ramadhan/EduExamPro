@@ -142,13 +142,16 @@ export default async function CoursesPage({
   let myPurchases = new Set<string>()
 
   try {
-    const records = await db.select().from(settings).where(eq(settings.id, 'courses_config'))
+    const [records, purchases] = await Promise.all([
+      db.select().from(settings).where(eq(settings.id, 'courses_config')),
+      userId ? db.select({ itemId: userPurchases.itemId }).from(userPurchases).where(and(eq(userPurchases.userId, userId), eq(userPurchases.itemType, 'course'))) : Promise.resolve([])
+    ])
+
     if (records.length > 0) {
       dbCourses = JSON.parse(records[0].value)
     }
 
-    if (userId) {
-      const purchases = await db.select({ itemId: userPurchases.itemId }).from(userPurchases).where(and(eq(userPurchases.userId, userId), eq(userPurchases.itemType, 'course')))
+    if (userId && purchases.length > 0) {
       purchases.forEach(p => myPurchases.add(p.itemId))
     }
   } catch (err) {
