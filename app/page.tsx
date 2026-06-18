@@ -188,9 +188,9 @@ export default async function LandingPage() {
                       ))}
                     </ul>
                   )}
-                  <button className="text-secondary font-bold flex items-center gap-2 group-hover:translate-x-2 transition-transform">
+                  <Link href="/tests" className="text-secondary font-bold flex items-center gap-2 group-hover:translate-x-2 transition-transform">
                     Jelajahi Paket Tryout <span className="material-symbols-outlined">arrow_right_alt</span>
-                  </button>
+                  </Link>
                 </div>
                 {config.features[0].imageUrl && (
                   <div className="absolute right-0 bottom-0 w-1/2 h-full opacity-20 md:opacity-100 group-hover:scale-105 transition-transform duration-500 overflow-hidden">
