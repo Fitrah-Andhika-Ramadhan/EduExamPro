@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { LandingMobileMenu } from '@/components/layout/LandingMobileMenu'
 import { usePathname } from 'next/navigation'
 import { ShoppingCart } from 'lucide-react'
-import { useCartStore } from '@/lib/store/cart-store'import { useState, useEffect } from 'react'
+import { useCartStore } from '@/lib/store/cart-store'
+import { useState, useEffect } from 'react'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
